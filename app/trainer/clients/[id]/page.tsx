@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import AiProgramGenerator from "./ai-program-generator"
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -410,7 +411,13 @@ export default async function ClientDashboardPage({
           )}
         </div>
 
-        {/* ── Section 5: Chat preview ─────────────────────────────────────── */}
+        {/* ── Section 5: AI Program Generator ────────────────────────────── */}
+        <div className="space-y-2">
+          <SectionTitle>יצירת תוכנית עם AI</SectionTitle>
+          <AiProgramGenerator clientId={clientId} />
+        </div>
+
+        {/* ── Section 6: Chat preview ─────────────────────────────────────── */}
         <div className="space-y-2">
           <SectionTitle>שאלות מהצ׳אט</SectionTitle>
 

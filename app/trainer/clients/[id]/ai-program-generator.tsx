@@ -1,11 +1,14 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { CheckIcon } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import type { GeneratedPlan } from "@/app/api/programs/generate/route"
+import { saveAiPlan } from "./actions"
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -88,14 +91,23 @@ function PlanPreview({ plan }: { plan: GeneratedPlan }) {
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function AiProgramGenerator({ clientId }: { clientId: string }) {
+  const router = useRouter()
+
+  // Generate state
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
   const [plan, setPlan] = useState<GeneratedPlan | null>(null)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+
+  // Save state
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle")
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   const handleGenerate = async () => {
     setStatus("loading")
     setErrorMsg(null)
     setPlan(null)
+    setSaveStatus("idle")
+    setSaveError(null)
 
     try {
       const res = await fetch("/api/programs/generate", {
@@ -120,9 +132,25 @@ export default function AiProgramGenerator({ clientId }: { clientId: string }) {
     }
   }
 
+  const handleSave = async () => {
+    if (!plan) return
+    setSaveStatus("saving")
+    setSaveError(null)
+
+    const result = await saveAiPlan(clientId, plan)
+
+    if (result.success) {
+      setSaveStatus("saved")
+      router.refresh()
+    } else {
+      setSaveError(result.error ?? "שגיאה בשמירה. נסה שוב.")
+      setSaveStatus("error")
+    }
+  }
+
   return (
     <div className="space-y-4">
-      {/* Generate button */}
+      {/* Generate button — shown when idle, error, or not yet saved */}
       {status !== "success" && (
         <Button
           onClick={handleGenerate}
@@ -152,7 +180,7 @@ export default function AiProgramGenerator({ clientId }: { clientId: string }) {
         </Card>
       )}
 
-      {/* Error */}
+      {/* Generate error */}
       {status === "error" && errorMsg && (
         <Card className="border-destructive/50">
           <CardContent className="py-4 text-center">
@@ -161,25 +189,51 @@ export default function AiProgramGenerator({ clientId }: { clientId: string }) {
         </Card>
       )}
 
-      {/* Plan preview */}
+      {/* Plan preview + save */}
       {status === "success" && plan && (
-        <div className="space-y-3">
+        <div className="space-y-4">
+          {/* Preview header */}
           <div className="flex items-center justify-between gap-2">
             <p className="text-sm font-medium text-muted-foreground">
-              תצוגה מקדימה — לא נשמר עדיין
+              {saveStatus === "saved" ? "תוכנית נשמרה" : "תצוגה מקדימה — טרם נשמר"}
             </p>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setPlan(null)
-                setStatus("idle")
-              }}
-            >
-              צור מחדש
-            </Button>
+            {saveStatus !== "saved" && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setPlan(null)
+                  setStatus("idle")
+                  setSaveStatus("idle")
+                }}
+              >
+                צור מחדש
+              </Button>
+            )}
           </div>
+
           <PlanPreview plan={plan} />
+
+          {/* Save area */}
+          {saveStatus === "saved" ? (
+            <div className="flex items-center gap-2 rounded-lg bg-muted/60 px-3 py-2.5 text-sm">
+              <CheckIcon className="size-4 shrink-0 text-primary" />
+              <span>התוכנית נשמרה בהצלחה ומופיעה בדשבורד</span>
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              {saveStatus === "error" && saveError && (
+                <p className="text-center text-xs text-destructive">{saveError}</p>
+              )}
+              <Button
+                onClick={handleSave}
+                disabled={saveStatus === "saving"}
+                className="w-full"
+              >
+                {saveStatus === "saving" ? "שומר תוכנית..." : "שמור תוכנית"}
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>

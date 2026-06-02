@@ -1,5 +1,7 @@
+import Link from "next/link"
 import { createAdminClient } from "@/lib/supabase/server"
 import { Card, CardContent } from "@/components/ui/card"
+import { buttonVariants } from "@/components/ui/button"
 import WorkoutDayCard, { type WorkoutDay } from "./workout-day-card"
 
 export const metadata = {
@@ -96,12 +98,20 @@ export default async function MyPlanPage({
       <div className="mx-auto max-w-lg space-y-6 p-4 pb-12">
 
         {/* Page Header */}
-        <div className="pt-2 space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight">התוכנית שלי</h1>
-          <p className="text-muted-foreground text-sm">שלום, {client.full_name}</p>
-          {client.goal && (
-            <p className="text-sm text-muted-foreground">מטרה: {client.goal}</p>
-          )}
+        <div className="pt-2 space-y-3">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold tracking-tight">התוכנית שלי</h1>
+            <p className="text-muted-foreground text-sm">שלום, {client.full_name}</p>
+            {client.goal && (
+              <p className="text-sm text-muted-foreground">מטרה: {client.goal}</p>
+            )}
+          </div>
+          <Link
+            href={`/chat?client=${clientId}`}
+            className={buttonVariants({ variant: "outline", size: "sm" })}
+          >
+            שאל את מאמן ה-AI
+          </Link>
         </div>
 
         {/* Plan Content */}

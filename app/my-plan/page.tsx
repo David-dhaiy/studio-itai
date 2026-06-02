@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { createAdminClient } from "@/lib/supabase/server"
+import { createClient, createAdminClient } from "@/lib/supabase/server"
 import { Card, CardContent } from "@/components/ui/card"
 import { buttonVariants } from "@/components/ui/button"
 import WorkoutDayCard, { type WorkoutDay } from "./workout-day-card"
@@ -30,28 +30,49 @@ export default async function MyPlanPage({
 }: {
   searchParams: Promise<{ client?: string }>
 }) {
-  const { client: clientId } = await searchParams
+  const { client: devClientParam } = await searchParams
+
+  // ── Primary: client session ──────────────────────────────────────────────────
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  let clientId: string | null = null
+
+  if (user) {
+    const { data: sessionClient } = await supabase
+      .from("clients")
+      .select("id")
+      .eq("user_id", user.id)
+      .maybeSingle()
+    if (sessionClient?.id) clientId = sessionClient.id
+  }
+
+  // ── Dev fallback: ?client= query param ──────────────────────────────────────
+  // TODO: Remove this fallback once all clients are migrated to auth
+  if (!clientId && devClientParam) {
+    clientId = devClientParam
+  }
 
   if (!clientId) {
     return (
       <EmptyCard
-        title="קישור לא תקין"
-        body="חסר מזהה לקוח. פנה למאמן שלך לקבלת קישור."
+        title="טרם נכנסת לחשבון שלך"
+        body="הצטרף/י דרך הקישור שקיבלת מהמאמן שלך."
       />
     )
   }
 
-  const supabase = await createAdminClient()
+  const admin = await createAdminClient()
 
   // Fetch client info and workout in parallel
   const [{ data: client }, { data: workout }] = await Promise.all([
-    supabase
+    admin
       .from("clients")
       .select("id, full_name, goal, fitness_level")
       .eq("id", clientId)
       .maybeSingle(),
 
-    supabase
+    admin
       .from("workouts")
       .select(
         `id, title, goal,
@@ -78,7 +99,7 @@ export default async function MyPlanPage({
   }
 
   // Fetch completed workout_day ids for this client
-  const { data: logs } = await supabase
+  const { data: logs } = await admin
     .from("workout_logs")
     .select("workout_day_id")
     .eq("client_id", clientId)

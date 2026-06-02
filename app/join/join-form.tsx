@@ -47,6 +47,8 @@ type FormData = {
   full_name: string
   phone: string
   email: string
+  password: string
+  confirm_password: string
   goal: string
   fitness_level: string
   available_days: string[]
@@ -60,6 +62,8 @@ const initialForm: FormData = {
   full_name: "",
   phone: "",
   email: "",
+  password: "",
+  confirm_password: "",
   goal: "",
   fitness_level: "",
   available_days: [],
@@ -74,6 +78,11 @@ function validateStep(step: number, form: FormData): FormErrors {
   if (step === 1) {
     if (!form.full_name.trim()) errors.full_name = "שם מלא הוא שדה חובה"
     if (!form.phone.trim()) errors.phone = "מספר טלפון הוא שדה חובה"
+    if (!form.email.trim()) errors.email = "אימייל הוא שדה חובה לצורך כניסה עתידית"
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errors.email = "כתובת אימייל לא תקינה"
+    if (!form.password) errors.password = "סיסמה היא שדה חובה"
+    else if (form.password.length < 6) errors.password = "סיסמה חייבת להכיל לפחות 6 תווים"
+    if (form.password !== form.confirm_password) errors.confirm_password = "הסיסמאות אינן תואמות"
   }
   if (step === 2) {
     if (!form.goal) errors.goal = "יש לבחור מטרת אימון"
@@ -155,8 +164,7 @@ function Step1({
 
       <div className="space-y-1.5">
         <Label htmlFor="email">
-          אימייל{" "}
-          <span className="text-xs text-muted-foreground">(אופציונלי)</span>
+          אימייל <span className="text-destructive">*</span>
         </Label>
         <Input
           id="email"
@@ -168,6 +176,51 @@ function Step1({
           autoComplete="email"
           className="text-start"
         />
+        {errors.email && (
+          <p className="text-xs text-destructive">{errors.email}</p>
+        )}
+      </div>
+
+      <div className="rounded-lg border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
+        האימייל והסיסמה ישמשו לכניסה עתידית לתוכנית שלך.
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="password">
+          סיסמה <span className="text-destructive">*</span>
+        </Label>
+        <Input
+          id="password"
+          type="password"
+          dir="ltr"
+          value={form.password}
+          onChange={(e) => update("password", e.target.value)}
+          placeholder="לפחות 6 תווים"
+          autoComplete="new-password"
+          className="text-start"
+        />
+        {errors.password && (
+          <p className="text-xs text-destructive">{errors.password}</p>
+        )}
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="confirm_password">
+          אישור סיסמה <span className="text-destructive">*</span>
+        </Label>
+        <Input
+          id="confirm_password"
+          type="password"
+          dir="ltr"
+          value={form.confirm_password}
+          onChange={(e) => update("confirm_password", e.target.value)}
+          placeholder="הקלד/י שוב את הסיסמה"
+          autoComplete="new-password"
+          className="text-start"
+        />
+        {errors.confirm_password && (
+          <p className="text-xs text-destructive">{errors.confirm_password}</p>
+        )}
       </div>
     </div>
   )
@@ -508,7 +561,8 @@ export default function JoinForm({ trainerId }: { trainerId?: string }) {
       trainer_id: trainerId,
       full_name: form.full_name,
       phone: form.phone,
-      email: form.email.trim() || null,
+      email: form.email.trim(),
+      password: form.password,
       goal: form.goal,
       fitness_level: form.fitness_level,
       available_days: form.available_days,
@@ -516,11 +570,10 @@ export default function JoinForm({ trainerId }: { trainerId?: string }) {
       sessions_per_week: form.sessions_per_week,
     })
 
-    if (result.success && result.client_id) {
-      router.push(`/my-plan?client=${result.client_id}`)
+    if (result.success) {
+      // Session cookie was set server-side — navigate without query params
+      router.push("/my-plan")
       return
-    } else if (result.success) {
-      setIsDone(true)
     } else {
       setSubmitError(result.error ?? "שגיאה לא ידועה. נסה שוב.")
     }

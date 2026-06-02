@@ -72,7 +72,7 @@ export default function ChatClient({
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ client_id: clientId, message: text }),
+        body: JSON.stringify({ message: text }),
       })
 
       const data = await res.json()

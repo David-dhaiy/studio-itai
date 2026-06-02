@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import Anthropic from "@anthropic-ai/sdk"
-import { createAdminClient } from "@/lib/supabase/server"
-
-// TODO: Task future — replace client_id query param with real client auth
-// (currently MVP: client_id passed from URL, no client-side session)
+import { createClient, createAdminClient } from "@/lib/supabase/server"
 
 // ─── System Prompt ────────────────────────────────────────────────────────────
 
@@ -56,31 +53,34 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  // Parse body
-  let client_id: string, message: string
+  // Parse body — only message is needed from the client
+  let message: string
   try {
     const body = await req.json()
-    client_id = body.client_id?.trim()
     message = body.message?.trim()
-    if (!client_id || !message) throw new Error("missing")
+    if (!message) throw new Error("missing message")
   } catch {
-    return NextResponse.json(
-      { error: "client_id ו-message נדרשים" },
-      { status: 400 }
-    )
+    return NextResponse.json({ error: "message נדרש" }, { status: 400 })
   }
 
-  const admin = await createAdminClient()
+  // ── Auth: verify client session ──────────────────────────────────────────────
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  // Fetch client
+  if (!user) {
+    return NextResponse.json({ error: "נדרשת התחברות" }, { status: 401 })
+  }
+
+  // Identify client from session (not from request body — prevents spoofing)
+  const admin = await createAdminClient()
   const { data: rawClient } = await admin
     .from("clients")
     .select("id, full_name, goal, fitness_level, limitations, trainer_id")
-    .eq("id", client_id)
+    .eq("user_id", user.id)
     .maybeSingle()
 
   if (!rawClient) {
-    return NextResponse.json({ error: "לקוח לא נמצא" }, { status: 404 })
+    return NextResponse.json({ error: "לקוח לא נמצא עבור חשבון זה" }, { status: 404 })
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
     .select(
       `title, workout_days(title, day_of_week, exercises(name, sets, reps))`
     )
-    .eq("client_id", client_id)
+    .eq("client_id", c.id)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle()
@@ -118,7 +118,7 @@ export async function POST(req: NextRequest) {
   const { data: rawHistory } = await admin
     .from("chat_messages")
     .select("role, content")
-    .eq("client_id", client_id)
+    .eq("client_id", c.id)
     .in("role", ["user", "assistant"])
     .order("created_at", { ascending: false })
     .limit(10)
@@ -137,7 +137,7 @@ export async function POST(req: NextRequest) {
 
   // Save user message first
   await admin.from("chat_messages").insert({
-    client_id,
+    client_id: c.id,
     trainer_id: c.trainer_id,
     role: "user",
     content: message,
@@ -173,7 +173,7 @@ export async function POST(req: NextRequest) {
 
     // Save AI response
     await admin.from("chat_messages").insert({
-      client_id,
+      client_id: c.id,
       trainer_id: c.trainer_id,
       role: "assistant",
       content: aiText,

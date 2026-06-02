@@ -1,4 +1,4 @@
-import { createAdminClient } from "@/lib/supabase/server"
+import { createClient, createAdminClient } from "@/lib/supabase/server"
 import { Card, CardContent } from "@/components/ui/card"
 import ChatClient from "./chat-client"
 
@@ -6,14 +6,33 @@ export const metadata = {
   title: "מאמן AI אישי — סטודיו איתי",
 }
 
-// TODO: Task future — replace ?client= query param with real client auth session
-
 export default async function ChatPage({
   searchParams,
 }: {
   searchParams: Promise<{ client?: string }>
 }) {
-  const { client: clientId } = await searchParams
+  const { client: devClientParam } = await searchParams
+
+  // ── Primary: client session ──────────────────────────────────────────────────
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  let clientId: string | null = null
+
+  if (user) {
+    const { data: sessionClient } = await supabase
+      .from("clients")
+      .select("id")
+      .eq("user_id", user.id)
+      .maybeSingle()
+    if (sessionClient?.id) clientId = sessionClient.id
+  }
+
+  // ── Dev fallback: ?client= query param ──────────────────────────────────────
+  // TODO: Remove this fallback once all clients are migrated to auth
+  if (!clientId && devClientParam) {
+    clientId = devClientParam
+  }
 
   if (!clientId) {
     return (

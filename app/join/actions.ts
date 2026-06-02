@@ -1,6 +1,6 @@
 "use server"
 
-import { createAdminClient } from "@/lib/supabase/server"
+import { createAuthAdminClient, createAdminClient, createClient } from "@/lib/supabase/server"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -8,7 +8,8 @@ export interface JoinFormPayload {
   trainer_id: string
   full_name: string
   phone: string
-  email: string | null
+  email: string          // now required for auth account
+  password: string       // new — creates auth user
   goal: string
   fitness_level: string
   available_days: string[]
@@ -86,13 +87,7 @@ async function createDemoPlan(
 
   const { data: workout, error: workoutError } = await supabase
     .from("workouts")
-    .insert({
-      client_id,
-      trainer_id,
-      title: "תוכנית בסיסית",
-      goal: "כושר כללי ובריאות",
-      source: "demo",
-    })
+    .insert({ client_id, trainer_id, title: "תוכנית בסיסית", goal: "כושר כללי ובריאות", source: "demo" })
     .select("id")
     .single()
 
@@ -103,50 +98,31 @@ async function createDemoPlan(
 
   for (let i = 0; i < days.length; i++) {
     const dayTemplate = days[i]
-
     const { data: wd, error: wdError } = await supabase
       .from("workout_days")
-      .insert({
-        workout_id: workout.id,
-        day_of_week: dayTemplate.day_of_week,
-        title: dayTemplate.title,
-        sort_order: i + 1,
-      })
+      .insert({ workout_id: workout.id, day_of_week: dayTemplate.day_of_week, title: dayTemplate.title, sort_order: i + 1 })
       .select("id")
       .single()
 
-    if (wdError || !wd) {
-      console.error("[demo] insert workout_day failed:", wdError)
-      continue
-    }
+    if (wdError || !wd) { console.error("[demo] insert workout_day failed:", wdError); continue }
 
     const exerciseRows = dayTemplate.exercises.map((ex, j) => ({
-      workout_day_id: wd.id,
-      name: ex.name,
-      sets: ex.sets,
-      reps: ex.reps,
-      rest_seconds: ex.rest_seconds ?? null,
-      instructions: ex.instructions ?? null,
-      sort_order: j + 1,
+      workout_day_id: wd.id, name: ex.name, sets: ex.sets, reps: ex.reps,
+      rest_seconds: ex.rest_seconds ?? null, instructions: ex.instructions ?? null, sort_order: j + 1,
     }))
-
-    const { error: exError } = await supabase
-      .from("exercises")
-      .insert(exerciseRows)
-
-    if (exError) {
-      console.error("[demo] insert exercises failed:", exError)
-    }
+    const { error: exError } = await supabase.from("exercises").insert(exerciseRows)
+    if (exError) console.error("[demo] insert exercises failed:", exError)
   }
 }
 
 // ─── Submit Join Form ─────────────────────────────────────────────────────────
 
 export async function submitJoinForm(data: JoinFormPayload): Promise<JoinFormResult> {
-  const supabase = await createAdminClient()
+  const authAdmin = createAuthAdminClient()
+  const admin = await createAdminClient()
 
   // Validate trainer exists
-  const { data: trainer } = await supabase
+  const { data: trainer } = await admin
     .from("trainers")
     .select("id")
     .eq("id", data.trainer_id)
@@ -156,31 +132,65 @@ export async function submitJoinForm(data: JoinFormPayload): Promise<JoinFormRes
     return { success: false, error: "קישור הצטרפות לא תקין. פנה למאמן שלך לקבלת קישור חדש." }
   }
 
-  // Insert client
-  const { data: client, error: insertError } = await supabase
+  // Create Supabase Auth user (email_confirm: true skips email verification for MVP)
+  const email = data.email.trim().toLowerCase()
+  const { data: authData, error: authError } = await authAdmin.auth.admin.createUser({
+    email,
+    password: data.password,
+    email_confirm: true,
+  })
+
+  if (authError) {
+    const alreadyExists =
+      authError.message.toLowerCase().includes("already") ||
+      (authError as { code?: string }).code === "email_exists"
+    if (alreadyExists) {
+      return { success: false, error: "כתובת האימייל כבר רשומה במערכת. נסה להתחבר." }
+    }
+    console.error("[join] createUser failed:", authError)
+    return { success: false, error: "שגיאה ביצירת החשבון. נסה שוב." }
+  }
+
+  // Insert client with user_id linked to the new auth user
+  const { data: client, error: insertError } = await admin
     .from("clients")
     .insert({
       trainer_id: data.trainer_id,
+      user_id: authData.user.id,
       full_name: data.full_name.trim(),
       phone: data.phone.trim(),
-      email: data.email,
+      email,
       goal: data.goal,
       fitness_level: data.fitness_level,
       available_days: data.available_days,
       limitations: data.limitations,
       status: "active",
-      user_id: null,
     })
     .select("id")
     .single()
 
   if (insertError || !client) {
+    // Rollback: delete the auth user we just created
+    await authAdmin.auth.admin.deleteUser(authData.user.id)
     console.error("[join] insert client failed:", insertError)
     return { success: false, error: "אירעה שגיאה בשמירת הנתונים. נסה שוב." }
   }
 
   // Create demo workout plan
-  await createDemoPlan(supabase, client.id, data.trainer_id, data.sessions_per_week)
+  await createDemoPlan(admin, client.id, data.trainer_id, data.sessions_per_week)
+
+  // Sign in the new user (sets session cookie via @supabase/ssr)
+  const serverClient = await createClient()
+  const { error: signInError } = await serverClient.auth.signInWithPassword({
+    email,
+    password: data.password,
+  })
+
+  if (signInError) {
+    console.error("[join] auto sign-in failed:", signInError)
+    // Account + client record created — just couldn't auto-sign-in
+    return { success: false, error: "החשבון נוצר בהצלחה. אנא התחבר/י ידנית." }
+  }
 
   return { success: true, client_id: client.id }
 }

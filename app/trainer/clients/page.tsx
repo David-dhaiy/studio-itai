@@ -1,9 +1,11 @@
 import Link from "next/link"
-import { createAdminClient } from "@/lib/supabase/server"
+import { redirect } from "next/navigation"
+import { createClient, createAdminClient } from "@/lib/supabase/server"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import LogoutButton from "./logout-button"
 
 export const metadata = {
   title: "לקוחות — סטודיו איתי",
@@ -60,21 +62,6 @@ function daysAgo(dateStr: string | null) {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function EmptyState({ message, body }: { message: string; body?: string }) {
-  return (
-    <div className="flex min-h-svh items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardContent className="py-10 text-center">
-          <p className="font-medium">{message}</p>
-          {body && (
-            <p className="mt-2 text-sm text-muted-foreground">{body}</p>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  )
-}
-
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
     <Card>
@@ -88,83 +75,77 @@ function StatCard({ label, value }: { label: string; value: number }) {
 
 // ─── Page ──────────────────────────────────────────────────────────────────────
 
-export default async function TrainerClientsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ t?: string }>
-}) {
-  const { t: trainerId } = await searchParams
+export default async function TrainerClientsPage() {
+  // ── Auth check ──────────────────────────────────────────────────────────────
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-  // ── MVP auth guard ──────────────────────────────────────────────────────────
-  // TODO (Task #7): Replace with real Supabase Auth session check.
-  // For now, trainer_id is passed via ?t=[trainer_id] for development only.
-  if (!trainerId) {
-    return (
-      <EmptyState
-        message="חסר מזהה מאמן"
-        body={`לצורך בדיקה, פתח את העמוד עם ?t=[trainer_id]`}
-      />
-    )
-  }
+  if (!user) redirect("/trainer/login")
 
-  const supabase = await createAdminClient()
-
-  // Validate trainer exists
+  // ── Trainer profile ─────────────────────────────────────────────────────────
+  // Uses regular client — RLS policy "trainer: select own" allows this
   const { data: trainer } = await supabase
     .from("trainers")
     .select("id, full_name")
-    .eq("id", trainerId)
+    .eq("user_id", user.id)
     .maybeSingle()
 
   if (!trainer) {
     return (
-      <EmptyState
-        message="מאמן לא נמצא"
-        body="המזהה שסופק אינו תקין. בדוק את ה-trainer_id."
-      />
+      <div className="flex min-h-svh items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="py-10 text-center">
+            <p className="font-medium">לא נמצא פרופיל מאמן לחשבון הזה</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              פנה לתמיכה או צור חשבון חדש.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
     )
   }
 
-  // Fetch all clients for this trainer
-  const { data: clients, error: clientsError } = await supabase
+  // ── Clients data (admin client for efficient bulk queries) ──────────────────
+  const adminSupabase = await createAdminClient()
+
+  const { data: clients, error: clientsError } = await adminSupabase
     .from("clients")
     .select("id, full_name, phone, email, goal, fitness_level, created_at, status")
-    .eq("trainer_id", trainerId)
+    .eq("trainer_id", trainer.id)
     .order("created_at", { ascending: false })
 
   if (clientsError) {
     return (
-      <EmptyState
-        message="שגיאה בטעינת הנתונים"
-        body="נסה לרענן את הדף."
-      />
+      <div className="flex min-h-svh items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="py-10 text-center">
+            <p className="font-medium text-destructive">שגיאה בטעינת הנתונים</p>
+            <p className="mt-2 text-sm text-muted-foreground">נסה לרענן את הדף.</p>
+          </CardContent>
+        </Card>
+      </div>
     )
   }
 
   const clientList = clients ?? []
   const clientIds = clientList.map((c) => c.id)
 
-  // Workout log stats (only if there are clients)
-  const startOfMonth = new Date(
-    new Date().getFullYear(),
-    new Date().getMonth(),
-    1
-  )
+  // ── Workout log stats ───────────────────────────────────────────────────────
+  const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
 
   let monthCountByClient: Record<string, number> = {}
   let lastWorkoutByClient: Record<string, string> = {}
 
   if (clientIds.length > 0) {
     const [{ data: monthLogs }, { data: allLogs }] = await Promise.all([
-      // Logs this calendar month
-      supabase
+      adminSupabase
         .from("workout_logs")
         .select("client_id, completed_at")
         .in("client_id", clientIds)
         .gte("completed_at", startOfMonth.toISOString()),
-
-      // All logs — ordered desc so first per client = most recent
-      supabase
+      adminSupabase
         .from("workout_logs")
         .select("client_id, completed_at")
         .in("client_id", clientIds)
@@ -175,7 +156,6 @@ export default async function TrainerClientsPage({
       monthCountByClient[log.client_id] =
         (monthCountByClient[log.client_id] ?? 0) + 1
     }
-
     for (const log of allLogs ?? []) {
       if (!lastWorkoutByClient[log.client_id]) {
         lastWorkoutByClient[log.client_id] = log.completed_at
@@ -183,7 +163,6 @@ export default async function TrainerClientsPage({
     }
   }
 
-  // Derived summary stats
   const activeThisMonth = clientList.filter(
     (c) => (monthCountByClient[c.id] ?? 0) > 0
   ).length
@@ -195,23 +174,16 @@ export default async function TrainerClientsPage({
     <div className="min-h-svh bg-background">
       <div className="mx-auto max-w-2xl space-y-6 p-4 pb-12">
 
-        {/* MVP dev notice */}
-        <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-2.5 text-xs text-yellow-800 dark:border-yellow-900/50 dark:bg-yellow-900/20 dark:text-yellow-300">
-          <span className="font-semibold">מצב פיתוח:</span> גישה דרך{" "}
-          <span dir="ltr" className="font-mono">?t=[trainer_id]</span> — Auth מלא יתווסף במטלה הבאה.
-        </div>
-
         {/* Header */}
-        <div className="space-y-0.5">
-          <h1 className="text-2xl font-bold tracking-tight">לקוחות סטודיו איתי</h1>
-          <p className="text-sm text-muted-foreground">
-            מעקב אחרי לקוחות, תוכניות והתקדמות
-          </p>
-          {trainer.full_name && (
+        <div className="flex items-start justify-between gap-4 pt-2">
+          <div className="space-y-0.5">
+            <h1 className="text-2xl font-bold tracking-tight">לקוחות סטודיו איתי</h1>
             <p className="text-sm text-muted-foreground">
-              מאמן: {trainer.full_name}
+              מעקב אחרי לקוחות, תוכניות והתקדמות
             </p>
-          )}
+            <p className="text-sm text-muted-foreground">מאמן: {trainer.full_name}</p>
+          </div>
+          <LogoutButton />
         </div>
 
         {/* Summary stats */}
@@ -221,13 +193,11 @@ export default async function TrainerClientsPage({
           <StatCard label="דורשים מעקב" value={needsAttention} />
         </div>
 
-        {/* Join link hint */}
+        {/* Join link */}
         <div className="rounded-lg border bg-muted/40 px-4 py-3">
-          <p className="text-xs text-muted-foreground">
-            קישור הצטרפות ללקוחות חדשים:
-          </p>
-          <p className="mt-0.5 font-mono text-xs select-all" dir="ltr">
-            /join?t={trainerId}
+          <p className="text-xs text-muted-foreground">קישור הצטרפות ללקוחות חדשים:</p>
+          <p className="mt-0.5 select-all font-mono text-xs" dir="ltr">
+            /join?t={trainer.id}
           </p>
         </div>
 
@@ -237,7 +207,7 @@ export default async function TrainerClientsPage({
             <CardContent className="py-12 text-center">
               <p className="font-medium">עדיין אין לקוחות</p>
               <p className="mt-2 text-sm text-muted-foreground">
-                שלח ללקוחות שלך את קישור ההצטרפות למעלה.
+                שלח ללקוחות את קישור ההצטרפות למעלה.
               </p>
             </CardContent>
           </Card>
@@ -253,23 +223,17 @@ export default async function TrainerClientsPage({
               return (
                 <Card key={client.id}>
                   <CardContent className="space-y-3 py-4">
-                    {/* Name + status badge */}
+                    {/* Name + status */}
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
                         <p className="font-semibold">{client.full_name}</p>
                         {client.phone && (
-                          <p
-                            className="text-sm text-muted-foreground"
-                            dir="ltr"
-                          >
+                          <p className="text-sm text-muted-foreground" dir="ltr">
                             {client.phone}
                           </p>
                         )}
                         {client.email && (
-                          <p
-                            className="text-xs text-muted-foreground"
-                            dir="ltr"
-                          >
+                          <p className="text-xs text-muted-foreground" dir="ltr">
                             {client.email}
                           </p>
                         )}
@@ -284,7 +248,7 @@ export default async function TrainerClientsPage({
                       </span>
                     </div>
 
-                    {/* Goal + level badges */}
+                    {/* Badges */}
                     <div className="flex flex-wrap gap-1.5">
                       {client.goal && (
                         <Badge variant="secondary" className="text-xs">
@@ -298,20 +262,18 @@ export default async function TrainerClientsPage({
                       )}
                     </div>
 
-                    {/* Activity stats row */}
-                    <div className="grid grid-cols-3 divide-x divide-x-reverse gap-0 rounded-lg bg-muted/50 text-center text-xs">
-                      <div className="py-2 px-1">
+                    {/* Activity stats */}
+                    <div className="grid grid-cols-3 divide-x divide-x-reverse rounded-lg bg-muted/50 text-center text-xs">
+                      <div className="px-1 py-2">
                         <p className="text-base font-bold">{monthCount}</p>
                         <p className="text-muted-foreground">אימונים החודש</p>
                       </div>
-                      <div className="py-2 px-1">
+                      <div className="px-1 py-2">
                         <p className="font-semibold">{daysAgo(lastWorkout)}</p>
                         <p className="text-muted-foreground">אימון אחרון</p>
                       </div>
-                      <div className="py-2 px-1">
-                        <p className="font-semibold">
-                          {formatDate(client.created_at)}
-                        </p>
+                      <div className="px-1 py-2">
+                        <p className="font-semibold">{formatDate(client.created_at)}</p>
                         <p className="text-muted-foreground">הצטרף/ה</p>
                       </div>
                     </div>

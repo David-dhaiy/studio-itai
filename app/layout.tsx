@@ -1,10 +1,15 @@
-import { Geist, Geist_Mono, Inter } from "next/font/google"
+import { Geist_Mono, Heebo } from "next/font/google"
 
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
+import { DirectionProvider } from "@/components/ui/direction"
 import { cn } from "@/lib/utils";
 
-const inter = Inter({subsets:['latin'],variable:'--font-sans'})
+const heebo = Heebo({
+  subsets: ['hebrew', 'latin'],
+  weight: ['400', '500', '700'],
+  variable: '--font-sans',
+})
 
 const fontMono = Geist_Mono({
   subsets: ["latin"],
@@ -18,12 +23,15 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="he"
+      dir="rtl"
       suppressHydrationWarning
-      className={cn("antialiased", fontMono.variable, "font-sans", inter.variable)}
+      className={cn("antialiased", fontMono.variable, "font-sans", heebo.variable)}
     >
       <body>
-        <ThemeProvider>{children}</ThemeProvider>
+        <DirectionProvider direction="rtl">
+          <ThemeProvider>{children}</ThemeProvider>
+        </DirectionProvider>
       </body>
     </html>
   )

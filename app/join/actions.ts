@@ -118,15 +118,29 @@ async function createDemoPlan(
 // ─── Submit Join Form ─────────────────────────────────────────────────────────
 
 export async function submitJoinForm(data: JoinFormPayload): Promise<JoinFormResult> {
+  console.info(
+    "[submitJoinForm] received trainer_id:",
+    data.trainer_id ? data.trainer_id.substring(0, 8) + "..." : "MISSING"
+  )
+
+  if (!data.trainer_id) {
+    return { success: false, error: "חסר מזהה מאמן בטופס" }
+  }
+
   const authAdmin = createAuthAdminClient()
   const admin = await createAdminClient()
 
-  // Validate trainer exists
-  const { data: trainer } = await admin
+  // Validate trainer exists (uses service role — bypasses RLS)
+  const { data: trainer, error: trainerLookupError } = await admin
     .from("trainers")
     .select("id")
     .eq("id", data.trainer_id)
     .maybeSingle()
+
+  console.info(
+    "[submitJoinForm] trainer exists:", !!trainer,
+    "| error:", trainerLookupError?.message ?? "none"
+  )
 
   if (!trainer) {
     return { success: false, error: "קישור הצטרפות לא תקין. פנה למאמן שלך לקבלת קישור חדש." }

@@ -24,9 +24,12 @@ export default async function JoinPage({
 }: {
   searchParams: Promise<{ t?: string }>
 }) {
-  const { t: trainerId } = await searchParams
+  const { t: rawTrainerId } = await searchParams
+  // Trim whitespace and normalise — URL params can carry invisible chars
+  const trainerId = rawTrainerId?.trim()
 
-  // 1. Missing trainer ID
+  console.info("[join page] trainerId from URL:", trainerId ?? "MISSING")
+
   if (!trainerId) {
     return (
       <ErrorCard
@@ -36,13 +39,19 @@ export default async function JoinPage({
     )
   }
 
-  // 2. Validate trainer exists — admin client bypasses RLS so anonymous visitors can check
+  // Validate trainer — admin client bypasses RLS for anonymous visitors
   const admin = await createAdminClient()
-  const { data: trainer } = await admin
+  const { data: trainer, error: trainerError } = await admin
     .from("trainers")
     .select("id")
     .eq("id", trainerId)
     .maybeSingle()
+
+  console.info(
+    "[join page] trainer lookup — found:",
+    !!trainer,
+    "| error:", trainerError?.message ?? "none"
+  )
 
   if (!trainer) {
     return (
@@ -53,6 +62,7 @@ export default async function JoinPage({
     )
   }
 
-  // 3. Valid trainer — show the join form
-  return <JoinForm trainerId={trainerId} />
+  // Pass trainer.id from DB (not raw URL param) for safety
+  console.info("[join page] rendering JoinForm with trainer.id:", trainer.id)
+  return <JoinForm trainerId={trainer.id} />
 }

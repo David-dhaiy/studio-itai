@@ -107,9 +107,16 @@ export default function WorkoutDayCard({
         {error && <p className="text-xs text-destructive">{error}</p>}
 
         {isCompleted ? (
-          <div className="flex items-center gap-2 rounded-lg bg-muted/60 px-3 py-2 text-sm text-muted-foreground">
-            <CheckIcon className="size-4 shrink-0 text-primary" />
-            <span>אימון הושלם</span>
+          <div className="flex items-center gap-2.5 rounded-lg border border-green-200 bg-green-50 px-3 py-2.5 dark:border-green-900/50 dark:bg-green-900/20">
+            <CheckIcon className="size-4 shrink-0 text-green-600 dark:text-green-400" />
+            <div>
+              <p className="text-sm font-medium text-green-700 dark:text-green-300">
+                אימון הושלם!
+              </p>
+              <p className="text-xs text-green-600/80 dark:text-green-400/80">
+                כל הכבוד, כך ממשיכים
+              </p>
+            </div>
           </div>
         ) : (
           <Button

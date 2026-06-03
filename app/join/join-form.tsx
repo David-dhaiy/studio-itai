@@ -2,7 +2,15 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { CheckIcon } from "lucide-react"
+import {
+  CheckIcon,
+  TrendingDownIcon,
+  DumbbellIcon,
+  FlameIcon,
+  ActivityIcon,
+  HeartPulseIcon,
+  HelpCircleIcon,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -13,13 +21,13 @@ import { submitJoinForm } from "./actions"
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const GOALS = [
-  "ירידה במשקל",
-  "עלייה במסת שריר",
-  "חיטוב",
-  "כושר כללי",
-  "שיקום / חזרה לפעילות",
-  "אחר",
+const GOALS: { value: string; Icon: React.ElementType }[] = [
+  { value: "ירידה במשקל",               Icon: TrendingDownIcon },
+  { value: "עלייה במסת שריר",            Icon: DumbbellIcon },
+  { value: "חיטוב",                      Icon: FlameIcon },
+  { value: "כושר כללי",                  Icon: ActivityIcon },
+  { value: "שיקום / חזרה לפעילות",       Icon: HeartPulseIcon },
+  { value: "אחר",                        Icon: HelpCircleIcon },
 ]
 
 const FITNESS_LEVELS = [
@@ -246,19 +254,20 @@ function Step2({
         <p className="text-xs text-destructive">{errors.goal}</p>
       )}
       <div className="grid grid-cols-2 gap-2">
-        {GOALS.map((goal) => (
+        {GOALS.map(({ value, Icon }) => (
           <button
-            key={goal}
+            key={value}
             type="button"
-            onClick={() => update("goal", goal)}
+            onClick={() => update("goal", value)}
             className={cn(
-              "rounded-lg border p-3 text-start text-sm leading-snug transition-colors",
-              form.goal === goal
+              "flex flex-col items-start gap-1.5 rounded-lg border p-3 text-start text-sm leading-snug transition-colors",
+              form.goal === value
                 ? "border-primary bg-primary/10 font-medium text-primary"
                 : "border-border hover:border-primary/40 hover:bg-muted/50"
             )}
           >
-            {goal}
+            <Icon className="size-4 opacity-70" />
+            <span>{value}</span>
           </button>
         ))}
       </div>

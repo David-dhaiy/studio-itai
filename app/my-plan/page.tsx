@@ -3,6 +3,7 @@ import { createClient, createAdminClient } from "@/lib/supabase/server"
 import { Card, CardContent } from "@/components/ui/card"
 import { buttonVariants } from "@/components/ui/button"
 import WorkoutDayCard, { type WorkoutDay } from "./workout-day-card"
+import ClientLogoutButton from "@/components/ui/client-logout-button"
 
 export const metadata = {
   title: "התוכנית שלי — סטודיו איתי",
@@ -17,6 +18,32 @@ function EmptyCard({ title, body }: { title: string; body: string }) {
         <CardContent className="py-10 text-center">
           <p className="font-medium">{title}</p>
           <p className="mt-2 text-sm text-muted-foreground">{body}</p>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+function NotLoggedIn() {
+  return (
+    <div className="flex min-h-svh items-center justify-center p-4">
+      <Card className="w-full max-w-sm">
+        <CardContent className="py-10 text-center space-y-4">
+          <div className="space-y-1">
+            <p className="font-semibold text-lg">ברוך/ה הבא/ה לסטודיו איתי</p>
+            <p className="text-sm text-muted-foreground">
+              כניסה לתוכנית האימון שלך
+            </p>
+          </div>
+          <Link
+            href="/client/login"
+            className={buttonVariants({ variant: "default" }) + " w-full"}
+          >
+            כניסה לחשבון
+          </Link>
+          <p className="text-xs text-muted-foreground">
+            עדיין לא נרשמת? פנה/י למאמן שלך לקבלת קישור הצטרפות.
+          </p>
         </CardContent>
       </Card>
     </div>
@@ -54,12 +81,7 @@ export default async function MyPlanPage({
   }
 
   if (!clientId) {
-    return (
-      <EmptyCard
-        title="טרם נכנסת לחשבון שלך"
-        body="הצטרף/י דרך הקישור שקיבלת מהמאמן שלך."
-      />
-    )
+    return <NotLoggedIn />
   }
 
   const admin = await createAdminClient()
@@ -114,21 +136,31 @@ export default async function MyPlanPage({
     (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
   )
 
+  // Check if all current-plan days are completed
+  const currentPlanCompletedCount = sortedDays.filter((d) =>
+    completedIds.has(d.id)
+  ).length
+  const allDaysCompleted =
+    sortedDays.length > 0 && currentPlanCompletedCount >= sortedDays.length
+
   return (
     <div className="min-h-svh bg-background">
       <div className="mx-auto max-w-lg space-y-6 p-4 pb-12">
 
         {/* Page Header */}
         <div className="pt-2 space-y-3">
-          <div className="space-y-1">
-            <h1 className="text-2xl font-bold tracking-tight">התוכנית שלי</h1>
-            <p className="text-muted-foreground text-sm">שלום, {client.full_name}</p>
-            {client.goal && (
-              <p className="text-sm text-muted-foreground">מטרה: {client.goal}</p>
-            )}
+          <div className="flex items-start justify-between gap-2">
+            <div className="space-y-1">
+              <h1 className="text-2xl font-bold tracking-tight">התוכנית שלי</h1>
+              <p className="text-muted-foreground text-sm">שלום, {client.full_name}</p>
+              {client.goal && (
+                <p className="text-sm text-muted-foreground">מטרה: {client.goal}</p>
+              )}
+            </div>
+            <ClientLogoutButton className="shrink-0" />
           </div>
           <Link
-            href={`/chat?client=${clientId}`}
+            href="/chat"
             className={buttonVariants({ variant: "outline", size: "sm" })}
           >
             שאל את מאמן ה-AI
@@ -162,6 +194,27 @@ export default async function MyPlanPage({
                 isCompleted={completedIds.has(day.id)}
               />
             ))}
+
+            {/* All workouts completed card */}
+            {allDaysCompleted && (
+              <div className="rounded-xl border-2 border-green-200 bg-green-50 p-6 text-center dark:border-green-900 dark:bg-green-900/20">
+                <div className="text-3xl font-bold text-green-600 dark:text-green-400">
+                  ✓
+                </div>
+                <h3 className="mt-2 text-base font-bold text-green-700 dark:text-green-300">
+                  השלמת את כל אימוני השבוע!
+                </h3>
+                <p className="mt-1 text-sm text-green-600/80 dark:text-green-400/80">
+                  עבודה מצוינת. פנה/י למאמן שלך לתוכנית הבאה.
+                </p>
+                <Link
+                  href="/chat"
+                  className={buttonVariants({ variant: "outline", size: "sm" }) + " mt-4"}
+                >
+                  שוחח/י עם מאמן ה-AI
+                </Link>
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -37,12 +37,20 @@ export default async function ChatPage({
   if (!clientId) {
     return (
       <div className="flex min-h-svh items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="py-10 text-center">
-            <p className="font-medium">חסר מזהה לקוח</p>
-            <p className="mt-2 text-sm text-muted-foreground">
-              פתח את הצ׳אט מתוך אזור התוכנית שלך.
-            </p>
+        <Card className="w-full max-w-sm">
+          <CardContent className="py-10 text-center space-y-4">
+            <div className="space-y-1">
+              <p className="font-semibold">מאמן AI אישי</p>
+              <p className="text-sm text-muted-foreground">
+                יש להתחבר לחשבון כדי להשתמש בצ׳אט
+              </p>
+            </div>
+            <a
+              href="/client/login"
+              className="inline-flex h-8 w-full items-center justify-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              כניסה לחשבון
+            </a>
           </CardContent>
         </Card>
       </div>

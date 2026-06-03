@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
+import ClientLogoutButton from "@/components/ui/client-logout-button"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -78,10 +79,18 @@ export default function ChatClient({
       const data = await res.json()
 
       if (!res.ok || data.error) {
-        setError(data.error ?? "שגיאה לא ידועה")
-        // Remove optimistic user message on error
+        const rawErr: string = data.error ?? ""
+        const friendly =
+          res.status === 401
+            ? "נדרשת התחברות מחדש — כנס/י שוב לחשבון."
+            : res.status === 404
+              ? "לא נמצא חשבון לקוח. פנה/י למאמן שלך."
+              : rawErr.includes("ANTHROPIC_API_KEY")
+                ? "שירות ה-AI לא זמין כרגע. נסה/י שוב מאוחר יותר."
+                : rawErr || "שגיאה בשליחת ההודעה. נסה/י שוב."
+        setError(friendly)
         setMessages((prev) => prev.slice(0, -1))
-        setInput(text) // restore input
+        setInput(text)
         return
       }
 
@@ -108,9 +117,12 @@ export default function ChatClient({
   return (
     <div className="flex h-svh flex-col bg-background">
       {/* Header */}
-      <div className="border-b px-4 py-3">
-        <h1 className="text-base font-semibold">מאמן AI אישי</h1>
-        <p className="text-xs text-muted-foreground">שלום, {clientName}</p>
+      <div className="flex items-center justify-between border-b px-4 py-3">
+        <div>
+          <h1 className="text-base font-semibold">מאמן AI אישי</h1>
+          <p className="text-xs text-muted-foreground">שלום, {clientName}</p>
+        </div>
+        <ClientLogoutButton />
       </div>
 
       {/* Messages */}

@@ -119,7 +119,16 @@ export default function AiProgramGenerator({ clientId }: { clientId: string }) {
       const data = await res.json()
 
       if (!res.ok || data.error) {
-        setErrorMsg(data.error ?? "שגיאה לא ידועה")
+        const rawErr: string = data.error ?? ""
+        const friendly =
+          res.status === 401
+            ? "נדרשת התחברות מחדש."
+            : res.status === 404
+              ? "לקוח לא נמצא."
+              : rawErr.includes("ANTHROPIC_API_KEY")
+                ? "שירות ה-AI לא מוגדר בשרת. פנה/י למנהל."
+                : rawErr || "שגיאה ביצירת התוכנית. נסה/י שוב."
+        setErrorMsg(friendly)
         setStatus("error")
         return
       }
@@ -127,7 +136,7 @@ export default function AiProgramGenerator({ clientId }: { clientId: string }) {
       setPlan(data.plan)
       setStatus("success")
     } catch {
-      setErrorMsg("שגיאת רשת. בדוק חיבור לאינטרנט ונסה שוב.")
+      setErrorMsg("בעיית חיבור. בדוק/י את האינטרנט ונסה/י שוב.")
       setStatus("error")
     }
   }

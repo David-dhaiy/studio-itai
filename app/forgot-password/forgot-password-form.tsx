@@ -29,12 +29,25 @@ export default function ForgotPasswordForm({
     setStatus("sending")
 
     const supabase = createClient()
-    // redirectTo goes through the PKCE auth callback, then on to /reset-password
-    await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
-      redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
-    })
+    const redirectTo = `${window.location.origin}/auth/callback?next=/reset-password`
 
-    // Always show success — do not reveal whether the email exists
+    const { error } = await supabase.auth.resetPasswordForEmail(
+      email.trim().toLowerCase(),
+      { redirectTo }
+    )
+
+    // Log to browser console for debugging — does NOT expose secrets
+    if (error) {
+      console.error(
+        "[forgot-password] resetPasswordForEmail failed:",
+        error.status,
+        error.message
+      )
+    } else {
+      console.info("[forgot-password] reset email sent, redirectTo:", redirectTo)
+    }
+
+    // Always show generic success — do not reveal whether the email exists
     setStatus("sent")
   }
 

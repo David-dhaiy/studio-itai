@@ -42,9 +42,20 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error) {
+      console.info("[auth/callback] code exchanged successfully, redirecting to:", next)
       return NextResponse.redirect(`${origin}${next}`)
     }
+
+    // Server-side log — appears in Vercel function logs
+    console.error(
+      "[auth/callback] exchangeCodeForSession failed:",
+      error.status,
+      error.message,
+      "| code prefix:", code.substring(0, 8) + "...",
+      "| next:", next
+    )
   }
 
+  console.warn("[auth/callback] no valid code in request, origin:", origin)
   return NextResponse.redirect(`${origin}/forgot-password?error=invalid_link`)
 }

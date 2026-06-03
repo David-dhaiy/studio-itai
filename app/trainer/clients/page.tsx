@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import LogoutButton from "./logout-button"
+import ClientLogoutButton from "@/components/ui/client-logout-button"
 
 export const metadata = {
   title: "לקוחות — סטודיו איתי",
@@ -95,12 +96,24 @@ export default async function TrainerClientsPage() {
   if (!trainer) {
     return (
       <div className="flex min-h-svh items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="py-10 text-center">
-            <p className="font-medium">לא נמצא פרופיל מאמן לחשבון הזה</p>
-            <p className="mt-2 text-sm text-muted-foreground">
-              פנה לתמיכה או צור חשבון חדש.
-            </p>
+        <Card className="w-full max-w-sm">
+          <CardContent className="py-10 text-center space-y-4">
+            <div className="space-y-1.5">
+              <p className="font-semibold">החשבון שלך אינו חשבון מאמן</p>
+              <p className="text-sm text-muted-foreground">
+                אתה מחובר לחשבון שאינו מאמן.
+                כדי להיכנס כמאמן, התנתק/י והתחבר/י עם חשבון מאמן.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Link
+                href="/trainer/login"
+                className={cn(buttonVariants({ variant: "default" }), "w-full")}
+              >
+                כניסת מאמן
+              </Link>
+              <ClientLogoutButton redirectTo="/trainer/login" variant="outline" className="w-full" />
+            </div>
           </CardContent>
         </Card>
       </div>

@@ -2,6 +2,7 @@ import Link from "next/link"
 import { createClient, createAdminClient } from "@/lib/supabase/server"
 import { Card, CardContent } from "@/components/ui/card"
 import { buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import WorkoutDayCard, { type WorkoutDay } from "./workout-day-card"
 import ClientLogoutButton from "@/components/ui/client-logout-button"
 
@@ -64,6 +65,7 @@ export default async function MyPlanPage({
   const { data: { user } } = await supabase.auth.getUser()
 
   let clientId: string | null = null
+  let isWrongRole = false   // logged in but has no client record
 
   if (user) {
     const { data: sessionClient } = await supabase
@@ -71,13 +73,44 @@ export default async function MyPlanPage({
       .select("id")
       .eq("user_id", user.id)
       .maybeSingle()
-    if (sessionClient?.id) clientId = sessionClient.id
+    if (sessionClient?.id) {
+      clientId = sessionClient.id
+    } else {
+      isWrongRole = true
+    }
   }
 
   // ── Dev fallback: ?client= query param ──────────────────────────────────────
   // TODO: Remove this fallback once all clients are migrated to auth
   if (!clientId && devClientParam) {
     clientId = devClientParam
+  }
+
+  if (!clientId && isWrongRole) {
+    return (
+      <div className="flex min-h-svh items-center justify-center p-4">
+        <Card className="w-full max-w-sm">
+          <CardContent className="py-10 text-center space-y-4">
+            <div className="space-y-1.5">
+              <p className="font-semibold">החשבון שלך אינו חשבון לקוח</p>
+              <p className="text-sm text-muted-foreground">
+                אתה מחובר לחשבון שאינו לקוח.
+                כדי לראות תוכנית אימון, התנתק/י והתחבר/י עם חשבון לקוח.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Link
+                href="/client/login"
+                className={cn(buttonVariants({ variant: "default" }), "w-full")}
+              >
+                כניסת לקוח
+              </Link>
+              <ClientLogoutButton redirectTo="/client/login" variant="outline" className="w-full" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   if (!clientId) {

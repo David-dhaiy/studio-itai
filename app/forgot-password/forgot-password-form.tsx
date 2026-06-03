@@ -29,7 +29,8 @@ export default function ForgotPasswordForm({
     setStatus("sending")
 
     const supabase = createClient()
-    const redirectTo = `${window.location.origin}/auth/callback?next=/reset-password`
+    // Uses token_hash flow via /auth/confirm (more reliable than PKCE /auth/callback)
+    const redirectTo = `${window.location.origin}/auth/confirm?next=/reset-password`
 
     const { error } = await supabase.auth.resetPasswordForEmail(
       email.trim().toLowerCase(),

@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import AiProgramGenerator from "./ai-program-generator"
+import RefreshButton from "./refresh-button"
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -419,34 +420,53 @@ export default async function ClientDashboardPage({
 
         {/* ── Section 6: Chat preview ─────────────────────────────────────── */}
         <div className="space-y-2">
-          <SectionTitle>שאלות מהצ׳אט</SectionTitle>
+          <div className="flex items-center justify-between gap-2">
+            <SectionTitle>שאלות אחרונות שהלקוח שאל את מאמן ה-AI</SectionTitle>
+            <RefreshButton label="רענן שאלות" />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            כאן איתי יכול לראות במה הלקוח התקשה ומה כדאי לבדוק איתו באימון הבא.
+          </p>
 
           {!chatMessages || chatMessages.length === 0 ? (
             <Card>
               <CardContent className="py-8 text-center text-sm text-muted-foreground">
-                עדיין אין שאלות בצ׳אט.
+                עדיין אין שאלות מהלקוח בצ׳אט.
               </CardContent>
             </Card>
           ) : (
             <Card>
               <CardContent className="divide-y py-0">
                 {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                {chatMessages.map((msg: any) => (
-                  <div key={msg.id} className="py-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <Badge
-                        variant={msg.role === "user" ? "secondary" : "outline"}
-                        className="text-xs"
+                {chatMessages.map((msg: any) => {
+                  const isUser = msg.role === "user"
+                  return (
+                    <div
+                      key={msg.id}
+                      className={cn("py-3", !isUser && "opacity-70")}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <Badge
+                          variant={isUser ? "default" : "outline"}
+                          className="text-xs"
+                        >
+                          {isUser ? "הלקוח שאל" : "תשובת AI"}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">
+                          {formatDateTime(msg.created_at)}
+                        </span>
+                      </div>
+                      <p
+                        className={cn(
+                          "mt-1.5 line-clamp-2 text-sm",
+                          isUser ? "font-medium" : "text-muted-foreground"
+                        )}
                       >
-                        {msg.role === "user" ? "לקוח" : "AI"}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">
-                        {formatDate(msg.created_at)}
-                      </span>
+                        {msg.content}
+                      </p>
                     </div>
-                    <p className="mt-1.5 line-clamp-2 text-sm">{msg.content}</p>
-                  </div>
-                ))}
+                  )
+                })}
               </CardContent>
             </Card>
           )}

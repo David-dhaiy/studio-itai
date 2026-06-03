@@ -15,6 +15,13 @@ interface ChatMessage {
   created_at?: string | null
 }
 
+const EXAMPLE_QUESTIONS = [
+  "איך עושים שכיבות סמיכה נכון?",
+  "כמה זמן לנוח בין סטים?",
+  "מה לעשות אם קשה לי בתרגיל?",
+  "איך לדעת אם המשקל מתאים?",
+]
+
 // ─── Bubble ───────────────────────────────────────────────────────────────────
 
 function MessageBubble({ msg }: { msg: ChatMessage }) {
@@ -57,8 +64,8 @@ export default function ChatClient({
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages, isLoading])
 
-  const sendMessage = async () => {
-    const text = input.trim()
+  const sendMessage = async (override?: string) => {
+    const text = (override ?? input).trim()
     if (!text || isLoading) return
 
     setInput("")
@@ -118,9 +125,11 @@ export default function ChatClient({
     <div className="flex h-svh flex-col bg-background">
       {/* Header */}
       <div className="flex items-center justify-between border-b px-4 py-3">
-        <div>
+        <div className="min-w-0">
           <h1 className="text-base font-semibold">מאמן AI אישי</h1>
-          <p className="text-xs text-muted-foreground">שלום, {clientName}</p>
+          <p className="text-xs text-muted-foreground">
+            שאלו על טכניקה, עומס, תרגילים או התאמות לתוכנית
+          </p>
         </div>
         <ClientLogoutButton />
       </div>
@@ -129,11 +138,29 @@ export default function ChatClient({
       <div className="flex-1 overflow-y-auto px-4 py-4">
         <div className="mx-auto max-w-lg space-y-3">
           {messages.length === 0 && (
-            <div className="py-8 text-center">
-              <p className="text-sm font-medium">שלום, {clientName}!</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                אפשר לשאול על תרגילים, טכניקה, עומס או התאמות לתוכנית שלך.
-              </p>
+            <div className="py-6">
+              <div className="text-center">
+                <p className="text-sm font-medium">שלום, {clientName}!</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  אפשר לשאול על תרגילים, טכניקה, עומס או התאמות לתוכנית שלך.
+                </p>
+              </div>
+              <div className="mt-4 space-y-2">
+                <p className="text-xs font-medium text-muted-foreground">
+                  שאלות לדוגמה:
+                </p>
+                {EXAMPLE_QUESTIONS.map((q) => (
+                  <button
+                    key={q}
+                    type="button"
+                    onClick={() => sendMessage(q)}
+                    disabled={isLoading}
+                    className="block w-full rounded-lg border bg-card px-3 py-2.5 text-start text-sm transition-colors hover:border-primary/40 hover:bg-muted/50 disabled:opacity-50"
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
@@ -179,7 +206,7 @@ export default function ChatClient({
             autoComplete="off"
           />
           <Button
-            onClick={sendMessage}
+            onClick={() => sendMessage()}
             disabled={isLoading || !input.trim()}
             size="default"
           >

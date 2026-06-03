@@ -148,7 +148,7 @@ export default async function MyPlanPage({
       <div className="mx-auto max-w-lg space-y-6 p-4 pb-12">
 
         {/* Page Header */}
-        <div className="pt-2 space-y-3">
+        <div className="pt-2">
           <div className="flex items-start justify-between gap-2">
             <div className="space-y-1">
               <h1 className="text-2xl font-bold tracking-tight">התוכנית שלי</h1>
@@ -159,11 +159,26 @@ export default async function MyPlanPage({
             </div>
             <ClientLogoutButton className="shrink-0" />
           </div>
+        </div>
+
+        {/* AI Coach CTA card */}
+        <div className="rounded-xl border bg-primary/5 p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xl">
+              🤖
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold">שאלה למאמן ה-AI</p>
+              <p className="mt-0.5 text-sm text-muted-foreground">
+                לא בטוחים איך לבצע תרגיל? שאלו כאן ותקבלו הסבר מיידי.
+              </p>
+            </div>
+          </div>
           <Link
             href="/chat"
-            className={buttonVariants({ variant: "outline", size: "sm" })}
+            className={buttonVariants({ variant: "default" }) + " mt-3 w-full"}
           >
-            שאל את מאמן ה-AI
+            פתח צ׳אט עם מאמן AI
           </Link>
         </div>
 

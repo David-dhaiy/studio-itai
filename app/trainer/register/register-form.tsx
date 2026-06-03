@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { PasswordInput } from "@/components/ui/password-input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { registerTrainer } from "./actions"
@@ -151,9 +152,8 @@ export default function RegisterForm() {
                 <Label htmlFor="password">
                   סיסמה <span className="text-destructive">*</span>
                 </Label>
-                <Input
+                <PasswordInput
                   id="password"
-                  type="password"
                   dir="ltr"
                   value={form.password}
                   onChange={(e) => update("password", e.target.value)}
@@ -172,9 +172,8 @@ export default function RegisterForm() {
                 <Label htmlFor="confirm_password">
                   אישור סיסמה <span className="text-destructive">*</span>
                 </Label>
-                <Input
+                <PasswordInput
                   id="confirm_password"
-                  type="password"
                   dir="ltr"
                   value={form.confirm_password}
                   onChange={(e) => update("confirm_password", e.target.value)}

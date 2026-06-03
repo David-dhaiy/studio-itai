@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { PasswordInput } from "@/components/ui/password-input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { updatePassword } from "./actions"
@@ -81,9 +81,8 @@ export default function ResetPasswordForm() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-1.5">
                 <Label htmlFor="password">סיסמה חדשה</Label>
-                <Input
+                <PasswordInput
                   id="password"
-                  type="password"
                   dir="ltr"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -96,9 +95,8 @@ export default function ResetPasswordForm() {
 
               <div className="space-y-1.5">
                 <Label htmlFor="confirm">אישור סיסמה</Label>
-                <Input
+                <PasswordInput
                   id="confirm"
-                  type="password"
                   dir="ltr"
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}

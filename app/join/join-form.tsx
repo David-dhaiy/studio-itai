@@ -13,6 +13,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { PasswordInput } from "@/components/ui/password-input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
@@ -197,9 +198,8 @@ function Step1({
         <Label htmlFor="password">
           סיסמה <span className="text-destructive">*</span>
         </Label>
-        <Input
+        <PasswordInput
           id="password"
-          type="password"
           dir="ltr"
           value={form.password}
           onChange={(e) => update("password", e.target.value)}
@@ -216,9 +216,8 @@ function Step1({
         <Label htmlFor="confirm_password">
           אישור סיסמה <span className="text-destructive">*</span>
         </Label>
-        <Input
+        <PasswordInput
           id="confirm_password"
-          type="password"
           dir="ltr"
           value={form.confirm_password}
           onChange={(e) => update("confirm_password", e.target.value)}

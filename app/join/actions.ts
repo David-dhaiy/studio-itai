@@ -1,6 +1,6 @@
 "use server"
 
-import { createAuthAdminClient, createAdminClient, createClient } from "@/lib/supabase/server"
+import { createAuthAdminClient, createClient } from "@/lib/supabase/server"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -118,37 +118,48 @@ async function createDemoPlan(
 // ─── Submit Join Form ─────────────────────────────────────────────────────────
 
 export async function submitJoinForm(data: JoinFormPayload): Promise<JoinFormResult> {
+  // Fail fast if service role key is not configured
+  if (!process.env.SUPABASE_SECRET_KEY) {
+    console.error("[submitJoinForm] SUPABASE_SECRET_KEY is not set — cannot proceed")
+    return { success: false, error: "שגיאת שרת. פנה/י לתמיכה." }
+  }
+
+  const trainerId = data.trainer_id?.trim()
   console.info(
     "[submitJoinForm] received trainer_id:",
-    data.trainer_id ? data.trainer_id.substring(0, 8) + "..." : "MISSING"
+    trainerId ? trainerId.substring(0, 8) + "..." : "MISSING"
   )
 
-  if (!data.trainer_id) {
+  if (!trainerId) {
     return { success: false, error: "חסר מזהה מאמן בטופס" }
   }
 
-  const authAdmin = createAuthAdminClient()
-  const admin = await createAdminClient()
+  // Use raw @supabase/supabase-js client for ALL DB operations.
+  // This guarantees service-role behaviour regardless of SSR/cookie context.
+  // (createAdminClient() uses @supabase/ssr which may behave differently in
+  //  Server Actions when a user session is present in cookies.)
+  const rawAdmin = createAuthAdminClient()
 
-  // Validate trainer exists (uses service role — bypasses RLS)
-  const { data: trainer, error: trainerLookupError } = await admin
+  // Validate trainer exists
+  const { data: trainer, error: trainerLookupError } = await rawAdmin
     .from("trainers")
     .select("id")
-    .eq("id", data.trainer_id)
+    .eq("id", trainerId)
     .maybeSingle()
 
   console.info(
-    "[submitJoinForm] trainer exists:", !!trainer,
-    "| error:", trainerLookupError?.message ?? "none"
+    "[submitJoinForm] trainer lookup — exists:", !!trainer,
+    "| supabase error:", trainerLookupError?.message ?? "none"
   )
 
   if (!trainer) {
-    return { success: false, error: "קישור הצטרפות לא תקין. פנה למאמן שלך לקבלת קישור חדש." }
+    console.warn("[submitJoinForm] trainer not found for id prefix:", trainerId.substring(0, 8))
+    return { success: false, error: "קישור הצטרפות לא תקין. פנה/י למאמן שלך לקבלת קישור חדש." }
   }
 
-  // Create Supabase Auth user (email_confirm: true skips email verification for MVP)
+  // Create auth user
   const email = data.email.trim().toLowerCase()
-  const { data: authData, error: authError } = await authAdmin.auth.admin.createUser({
+  const { data: authData, error: authError } = await rawAdmin.auth.admin.createUser({
     email,
     password: data.password,
     email_confirm: true,
@@ -159,17 +170,17 @@ export async function submitJoinForm(data: JoinFormPayload): Promise<JoinFormRes
       authError.message.toLowerCase().includes("already") ||
       (authError as { code?: string }).code === "email_exists"
     if (alreadyExists) {
-      return { success: false, error: "כתובת האימייל כבר רשומה במערכת. נסה להתחבר." }
+      return { success: false, error: "כתובת האימייל כבר רשומה במערכת. נסה/י להתחבר." }
     }
-    console.error("[join] createUser failed:", authError)
-    return { success: false, error: "שגיאה ביצירת החשבון. נסה שוב." }
+    console.error("[join] createUser failed:", authError.message)
+    return { success: false, error: "לא ניתן ליצור משתמש. נסה/י שוב." }
   }
 
-  // Insert client with user_id linked to the new auth user
-  const { data: client, error: insertError } = await admin
+  // Insert client
+  const { data: client, error: insertError } = await rawAdmin
     .from("clients")
     .insert({
-      trainer_id: data.trainer_id,
+      trainer_id: trainerId,
       user_id: authData.user.id,
       full_name: data.full_name.trim(),
       phone: data.phone.trim(),
@@ -184,16 +195,15 @@ export async function submitJoinForm(data: JoinFormPayload): Promise<JoinFormRes
     .single()
 
   if (insertError || !client) {
-    // Rollback: delete the auth user we just created
-    await authAdmin.auth.admin.deleteUser(authData.user.id)
-    console.error("[join] insert client failed:", insertError)
-    return { success: false, error: "אירעה שגיאה בשמירת הנתונים. נסה שוב." }
+    await rawAdmin.auth.admin.deleteUser(authData.user.id)
+    console.error("[join] insert client failed:", insertError?.message)
+    return { success: false, error: "לא ניתן לשמור לקוח. נסה/י שוב." }
   }
 
-  // Create demo workout plan
-  await createDemoPlan(admin, client.id, data.trainer_id, data.sessions_per_week)
+  // Create demo plan (also using raw admin — same reasons as above)
+  await createDemoPlan(rawAdmin, client.id, trainerId, data.sessions_per_week)
 
-  // Sign in the new user (sets session cookie via @supabase/ssr)
+  // Sign in via SSR client so the session cookie is set correctly
   const serverClient = await createClient()
   const { error: signInError } = await serverClient.auth.signInWithPassword({
     email,
@@ -201,10 +211,10 @@ export async function submitJoinForm(data: JoinFormPayload): Promise<JoinFormRes
   })
 
   if (signInError) {
-    console.error("[join] auto sign-in failed:", signInError)
-    // Account + client record created — just couldn't auto-sign-in
+    console.error("[join] auto sign-in failed:", signInError.message)
     return { success: false, error: "החשבון נוצר בהצלחה. אנא התחבר/י ידנית." }
   }
 
+  console.info("[submitJoinForm] success — client.id prefix:", client.id.substring(0, 8))
   return { success: true, client_id: client.id }
 }

@@ -88,12 +88,20 @@ export default function ClientLoginForm() {
           </CardContent>
         </Card>
 
-        <p className="text-center text-sm text-muted-foreground">
-          עדיין לא נרשמת?{" "}
-          <span className="text-foreground">
-            פנה/י למאמן שלך לקבלת קישור הצטרפות.
-          </span>
-        </p>
+        <div className="text-center space-y-1.5">
+          <Link
+            href="/forgot-password"
+            className="block text-sm text-primary hover:underline"
+          >
+            שכחתי סיסמה
+          </Link>
+          <p className="text-sm text-muted-foreground">
+            עדיין לא נרשמת?{" "}
+            <span className="text-foreground">
+              פנה/י למאמן שלך לקבלת קישור הצטרפות.
+            </span>
+          </p>
+        </div>
       </div>
     </div>
   )

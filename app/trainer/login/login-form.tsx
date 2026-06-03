@@ -88,12 +88,20 @@ export default function LoginForm() {
           </CardContent>
         </Card>
 
-        <p className="text-center text-sm text-muted-foreground">
-          אין לך חשבון עדיין?{" "}
-          <Link href="/trainer/register" className="text-primary hover:underline">
-            הירשם/י כאן
+        <div className="text-center space-y-1.5">
+          <Link
+            href="/forgot-password"
+            className="block text-sm text-primary hover:underline"
+          >
+            שכחתי סיסמה
           </Link>
-        </p>
+          <p className="text-sm text-muted-foreground">
+            אין לך חשבון עדיין?{" "}
+            <Link href="/trainer/register" className="text-primary hover:underline">
+              הירשם/י כאן
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   )

@@ -24,14 +24,34 @@ export default async function JoinPage({
 }: {
   searchParams: Promise<{ t?: string }>
 }) {
-  const { t: rawTrainerId } = await searchParams
+  // ── Environment diagnostics ────────────────────────────────────────────────
+  const supabaseUrl   = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const secretKey     = process.env.SUPABASE_SECRET_KEY
 
+  console.info("[join page] env url exists:", !!supabaseUrl)
+  console.info("[join page] secret key exists:", !!secretKey)
+  if (secretKey) {
+    console.info("[join page] secret key prefix:", secretKey.substring(0, 8))
+  }
+
+  // Fail fast with a visible error if the service-role key is missing
+  if (!supabaseUrl || !secretKey) {
+    console.error("[join page] MISSING env vars — url:", !!supabaseUrl, "key:", !!secretKey)
+    return (
+      <ErrorCard
+        title="שגיאת הגדרות שרת: חסר מפתח Supabase Secret"
+        body="יש להגדיר SUPABASE_SECRET_KEY ו-NEXT_PUBLIC_SUPABASE_URL ב-Vercel Environment Variables."
+      />
+    )
+  }
+
+  // ── Trainer ID from URL ────────────────────────────────────────────────────
+  const { t: rawTrainerId } = await searchParams
   console.info("[join page] raw t:", rawTrainerId ?? "MISSING")
 
-  // Trim whitespace — URL params can carry invisible chars
   const trainerId = rawTrainerId?.trim()
-
-  console.info("[join page] trimmed trainerId:", trainerId ?? "MISSING")
+  console.info("[join page] trimmed trainerId prefix:",
+    trainerId ? trainerId.substring(0, 8) + "..." : "MISSING")
 
   if (!trainerId) {
     return (
@@ -42,10 +62,9 @@ export default async function JoinPage({
     )
   }
 
-  // Use raw @supabase/supabase-js admin client (SUPABASE_SECRET_KEY).
-  // createAdminClient() wraps @supabase/ssr which respects RLS in some
-  // Next.js contexts — this raw client always bypasses RLS.
-  console.info("[join page] using auth admin client: true")
+  // ── Trainer lookup with raw supabase-js (bypasses RLS) ────────────────────
+  // createAuthAdminClient() uses createClient from @supabase/supabase-js
+  // directly with SUPABASE_SECRET_KEY — not the @supabase/ssr wrapper.
   const rawAdmin = createAuthAdminClient()
 
   const { data: trainer, error: trainerError } = await rawAdmin
@@ -55,9 +74,9 @@ export default async function JoinPage({
     .maybeSingle()
 
   console.info(
-    "[join page] trainer lookup — found:",
-    !!trainer,
-    "| error:", trainerError?.message ?? "none"
+    "[join page] trainer lookup found:", !!trainer,
+    "| error:", trainerError?.message ?? "none",
+    "| error code:", trainerError?.code ?? "none"
   )
 
   if (!trainer) {
@@ -69,7 +88,6 @@ export default async function JoinPage({
     )
   }
 
-  // Pass trainer.id from DB (not raw URL param)
-  console.info("[join page] rendering JoinForm with trainer.id prefix:", trainer.id.substring(0, 8))
+  console.info("[join page] rendering JoinForm for trainer prefix:", trainer.id.substring(0, 8))
   return <JoinForm trainerId={trainer.id} />
 }

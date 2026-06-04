@@ -38,11 +38,14 @@ export default function ClientLoginForm() {
   }
 
   return (
-    <div className="flex min-h-svh items-center justify-center bg-background p-4">
+    <div className="flex min-h-svh items-center justify-center bg-gradient-to-b from-emerald-50/60 to-background p-4">
       <div className="w-full max-w-sm space-y-5">
-        <div className="space-y-1 text-center">
-          <h1 className="text-2xl font-bold tracking-tight">כניסה לתוכנית שלי</h1>
-          <p className="text-sm text-muted-foreground">סטודיו איתי</p>
+        <div className="space-y-2 text-center">
+          <p className="text-4xl">🏋️‍♂️</p>
+          <h1 className="text-2xl font-bold tracking-tight">כניסת לקוח</h1>
+          <p className="text-sm text-muted-foreground">
+            התחברו כדי לצפות בתוכנית, לסמן אימונים ולשאול את מאמן ה-AI.
+          </p>
         </div>
 
         <Card>

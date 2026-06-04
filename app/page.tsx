@@ -13,26 +13,25 @@ export const metadata = {
 
 function TrainerDashboard({ fullName }: { fullName: string }) {
   return (
-    <div className="min-h-svh bg-background">
-      <div className="mx-auto max-w-md space-y-5 p-4 py-10">
+    <div className="min-h-svh bg-gradient-to-b from-blue-50/60 to-background">
+      <div className="mx-auto max-w-md space-y-5 p-4 py-12">
         <div className="text-center space-y-1">
+          <p className="text-4xl">👨‍🏫</p>
           <h1 className="text-2xl font-bold tracking-tight">סטודיו איתי</h1>
         </div>
-        <Card className="border-primary/30 bg-primary/5">
-          <CardContent className="py-5 space-y-4">
-            <div className="space-y-0.5">
-              <p className="text-xs text-muted-foreground">מחובר/ת כ</p>
-              <p className="font-semibold">מאמן — {fullName}</p>
+        <Card className="border-blue-200 bg-white shadow-sm">
+          <CardContent className="py-6 space-y-5">
+            <div className="rounded-lg bg-blue-50 px-4 py-3">
+              <p className="text-xs text-blue-600 font-medium">מחובר/ת כמאמן</p>
+              <p className="text-lg font-bold text-blue-900 mt-0.5">{fullName}</p>
             </div>
-            <div className="space-y-2">
-              <Link
-                href="/trainer/clients"
-                className={cn(buttonVariants({ variant: "default" }), "w-full")}
-              >
-                פאנל לקוחות
-              </Link>
-              <ClientLogoutButton redirectTo="/" variant="outline" className="w-full" />
-            </div>
+            <Link
+              href="/trainer/clients"
+              className={cn(buttonVariants({ variant: "default" }), "w-full bg-blue-600 hover:bg-blue-700")}
+            >
+              פאנל לקוחות
+            </Link>
+            <ClientLogoutButton redirectTo="/" variant="outline" className="w-full" />
           </CardContent>
         </Card>
       </div>
@@ -42,32 +41,33 @@ function TrainerDashboard({ fullName }: { fullName: string }) {
 
 function ClientDashboard({ fullName }: { fullName: string }) {
   return (
-    <div className="min-h-svh bg-background">
-      <div className="mx-auto max-w-md space-y-5 p-4 py-10">
+    <div className="min-h-svh bg-gradient-to-b from-emerald-50/60 to-background">
+      <div className="mx-auto max-w-md space-y-5 p-4 py-12">
         <div className="text-center space-y-1">
+          <p className="text-4xl">🏋️‍♂️</p>
           <h1 className="text-2xl font-bold tracking-tight">סטודיו איתי</h1>
         </div>
-        <Card className="border-primary/30 bg-primary/5">
-          <CardContent className="py-5 space-y-4">
-            <div className="space-y-0.5">
-              <p className="text-xs text-muted-foreground">מחובר/ת כ</p>
-              <p className="font-semibold">לקוח — {fullName}</p>
+        <Card className="border-emerald-200 bg-white shadow-sm">
+          <CardContent className="py-6 space-y-5">
+            <div className="rounded-lg bg-emerald-50 px-4 py-3">
+              <p className="text-xs text-emerald-600 font-medium">מחובר/ת כלקוח</p>
+              <p className="text-lg font-bold text-emerald-900 mt-0.5">{fullName}</p>
             </div>
             <div className="space-y-2">
               <Link
                 href="/my-plan"
-                className={cn(buttonVariants({ variant: "default" }), "w-full")}
+                className={cn(buttonVariants({ variant: "default" }), "w-full bg-emerald-600 hover:bg-emerald-700")}
               >
                 התוכנית שלי
               </Link>
               <Link
                 href="/chat"
-                className={cn(buttonVariants({ variant: "outline" }), "w-full")}
+                className={cn(buttonVariants({ variant: "outline" }), "w-full border-emerald-300 text-emerald-700 hover:bg-emerald-50")}
               >
-                צ׳אט AI
+                🤖 שאל את מאמן ה-AI
               </Link>
-              <ClientLogoutButton redirectTo="/" variant="outline" className="w-full" />
             </div>
+            <ClientLogoutButton redirectTo="/" variant="outline" className="w-full" />
           </CardContent>
         </Card>
       </div>
@@ -77,88 +77,113 @@ function ClientDashboard({ fullName }: { fullName: string }) {
 
 // ─── Guest home ───────────────────────────────────────────────────────────────
 
-function SectionCard({
-  emoji,
-  title,
-  children,
-}: {
-  emoji: string
-  title: string
-  children: React.ReactNode
-}) {
-  return (
-    <Card>
-      <CardContent className="space-y-3 py-5">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl">{emoji}</span>
-          <h2 className="text-lg font-semibold">{title}</h2>
-        </div>
-        <div className="space-y-2">{children}</div>
-      </CardContent>
-    </Card>
-  )
-}
+const HOW_IT_WORKS = [
+  { step: "1", text: "לקוח מצטרף דרך קישור מהמאמן" },
+  { step: "2", text: "מקבל תוכנית אימון מותאמת אישית" },
+  { step: "3", text: "מסמן אימונים שהושלמו" },
+  { step: "4", text: "המאמן עוקב, מעדכן ומשפר" },
+]
 
 function GuestHome() {
   return (
-    <div className="min-h-svh bg-background">
-      <div className="mx-auto max-w-md space-y-6 p-4 py-10">
+    <div className="min-h-svh bg-gradient-to-b from-slate-50 to-background">
+      <div className="mx-auto max-w-md space-y-8 p-4 py-12">
 
-        <div className="text-center space-y-1.5">
-          <h1 className="text-3xl font-bold tracking-tight">סטודיו איתי</h1>
-          <p className="text-muted-foreground">
+        {/* Hero */}
+        <div className="text-center space-y-3">
+          <p className="text-5xl">🏋️‍♂️</p>
+          <h1 className="text-4xl font-extrabold tracking-tight">סטודיו איתי</h1>
+          <p className="text-lg font-medium text-muted-foreground">
             מערכת חכמה לניהול אימונים אישיים
+          </p>
+          <p className="text-sm text-muted-foreground leading-relaxed max-w-sm mx-auto">
+            לקוחות מקבלים תוכנית אימון, מאמנים עוקבים אחרי התקדמות, וה-AI עוזר בשאלות יומיומיות.
           </p>
         </div>
 
-        <SectionCard emoji="🏋️‍♂️" title="לקוחות">
-          <Link
-            href="/client/login"
-            className={cn(buttonVariants({ variant: "default" }), "w-full")}
-          >
-            כניסת לקוח
-          </Link>
-          <Link
-            href="/my-plan"
-            className={cn(buttonVariants({ variant: "outline" }), "w-full")}
-          >
-            התוכנית שלי
-          </Link>
-        </SectionCard>
+        {/* Client card */}
+        <Card className="border-emerald-200 bg-white shadow-sm overflow-hidden">
+          <div className="h-1 w-full bg-emerald-500" />
+          <CardContent className="space-y-3 py-5">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">🏋️‍♂️</span>
+              <h2 className="text-lg font-bold">לקוחות</h2>
+            </div>
+            <div className="space-y-2">
+              <Link
+                href="/client/login"
+                className={cn(buttonVariants({ variant: "default" }), "w-full bg-emerald-600 hover:bg-emerald-700")}
+              >
+                כניסת לקוח
+              </Link>
+              <Link
+                href="/my-plan"
+                className={cn(buttonVariants({ variant: "outline" }), "w-full border-emerald-200 text-emerald-700 hover:bg-emerald-50")}
+              >
+                התוכנית שלי
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
 
-        <SectionCard emoji="👨‍🏫" title="מאמנים">
-          <Link
-            href="/trainer/login"
-            className={cn(buttonVariants({ variant: "default" }), "w-full")}
-          >
-            כניסת מאמן
-          </Link>
-          <Link
-            href="/trainer/register"
-            className={cn(buttonVariants({ variant: "outline" }), "w-full")}
-          >
-            הרשמת מאמן
-          </Link>
-          <Link
-            href="/trainer/clients"
-            className={cn(buttonVariants({ variant: "outline" }), "w-full")}
-          >
-            פאנל לקוחות
-          </Link>
-        </SectionCard>
+        {/* Trainer card */}
+        <Card className="border-blue-200 bg-white shadow-sm overflow-hidden">
+          <div className="h-1 w-full bg-blue-500" />
+          <CardContent className="space-y-3 py-5">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">👨‍🏫</span>
+              <h2 className="text-lg font-bold">מאמנים</h2>
+            </div>
+            <div className="space-y-2">
+              <Link
+                href="/trainer/login"
+                className={cn(buttonVariants({ variant: "default" }), "w-full bg-blue-600 hover:bg-blue-700")}
+              >
+                כניסת מאמן
+              </Link>
+              <Link
+                href="/trainer/register"
+                className={cn(buttonVariants({ variant: "outline" }), "w-full border-blue-200 text-blue-700 hover:bg-blue-50")}
+              >
+                הרשמת מאמן
+              </Link>
+              <Link
+                href="/trainer/clients"
+                className={cn(buttonVariants({ variant: "outline" }), "w-full border-blue-200 text-blue-700 hover:bg-blue-50")}
+              >
+                פאנל לקוחות
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
 
-        <SectionCard emoji="🔐" title="עזרה">
+        {/* How it works */}
+        <Card className="bg-white shadow-sm">
+          <CardContent className="py-5 space-y-3">
+            <h3 className="font-bold text-sm text-muted-foreground tracking-wide">איך זה עובד?</h3>
+            <ol className="space-y-2">
+              {HOW_IT_WORKS.map(({ step, text }) => (
+                <li key={step} className="flex items-start gap-3">
+                  <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">
+                    {step}
+                  </span>
+                  <span className="text-sm text-muted-foreground">{text}</span>
+                </li>
+              ))}
+            </ol>
+          </CardContent>
+        </Card>
+
+        {/* Help */}
+        <div className="text-center space-y-2">
           <Link
             href="/forgot-password"
-            className={cn(buttonVariants({ variant: "outline" }), "w-full")}
+            className="text-sm text-muted-foreground hover:text-foreground hover:underline"
           >
-            שכחתי סיסמה
+            🔐 שכחתי סיסמה
           </Link>
-        </SectionCard>
-
-        <div className="rounded-lg border bg-muted/40 px-4 py-3 text-center">
-          <p className="text-sm text-muted-foreground">
-            🤖 לקוח חדש מצטרף דרך קישור הצטרפות אישי שמקבל מהמאמן.
+          <p className="text-xs text-muted-foreground">
+            לקוח חדש? בקש קישור הצטרפות מהמאמן שלך.
           </p>
         </div>
 
@@ -176,7 +201,6 @@ export default async function HomePage() {
   } = await supabase.auth.getUser()
 
   if (user) {
-    // Check trainer role (RLS: user_id = auth.uid())
     const { data: trainer } = await supabase
       .from("trainers")
       .select("id, full_name")
@@ -188,7 +212,6 @@ export default async function HomePage() {
       return <TrainerDashboard fullName={(trainer as any).full_name ?? "מאמן"} />
     }
 
-    // Check client role
     const { data: client } = await supabase
       .from("clients")
       .select("id, full_name")
@@ -199,9 +222,6 @@ export default async function HomePage() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return <ClientDashboard fullName={(client as any).full_name ?? "לקוח"} />
     }
-
-    // Logged in but no role — show guest home (edge case)
-    return <GuestHome />
   }
 
   return <GuestHome />

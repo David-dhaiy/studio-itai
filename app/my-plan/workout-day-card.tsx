@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import { logWorkoutCompletion } from "./actions"
 
-// ─── Types (shared with page.tsx) ─────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 export type Exercise = {
   id: string
@@ -31,22 +31,31 @@ export type WorkoutDay = {
 // ─── Exercise Row ──────────────────────────────────────────────────────────────
 
 function ExerciseRow({ ex }: { ex: Exercise }) {
-  const meta = [
+  const tags = [
     ex.sets ? `${ex.sets} סטים` : null,
-    ex.reps ? `${ex.reps}` : null,
+    ex.reps ?? null,
     ex.rest_seconds ? `מנוחה ${ex.rest_seconds}″` : null,
-  ]
-    .filter(Boolean)
-    .join(" · ")
+  ].filter(Boolean) as string[]
 
   return (
-    <div className="space-y-0.5">
-      <div className="flex items-baseline justify-between gap-2">
-        <span className="text-sm font-medium">{ex.name}</span>
-        <span className="shrink-0 text-xs text-muted-foreground">{meta}</span>
+    <div className="space-y-1.5">
+      <div className="flex items-start justify-between gap-2">
+        <span className="text-sm font-semibold leading-snug">{ex.name}</span>
+        <div className="flex shrink-0 flex-wrap justify-end gap-1">
+          {tags.map((tag) => (
+            <span
+              key={tag}
+              className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
       </div>
       {ex.instructions && (
-        <p className="text-xs text-muted-foreground">{ex.instructions}</p>
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          {ex.instructions}
+        </p>
       )}
     </div>
   )
@@ -84,33 +93,41 @@ export default function WorkoutDayCard({
   }
 
   return (
-    <Card className={cn(isCompleted && "opacity-80")}>
-      <CardContent className="space-y-4 py-4">
-        {/* Day Header */}
+    <Card
+      className={cn(
+        "overflow-hidden shadow-sm transition-opacity",
+        isCompleted && "opacity-80"
+      )}
+    >
+      {/* Colored top strip */}
+      <div className={cn("h-1 w-full", isCompleted ? "bg-green-400" : "bg-primary")} />
+
+      <CardContent className="space-y-4 pt-4 pb-4">
+        {/* Day header */}
         <div className="flex items-center justify-between gap-2">
-          <h3 className="font-semibold">{day.title}</h3>
-          <Badge variant="secondary" className="shrink-0">
+          <h3 className="text-base font-bold">{day.title}</h3>
+          <Badge variant="secondary" className="shrink-0 text-xs">
             {day.day_of_week}
           </Badge>
         </div>
 
         {/* Exercises */}
-        <div className="space-y-3 divide-y">
+        <div className="divide-y">
           {sortedExercises.map((ex) => (
-            <div key={ex.id} className="pt-3 first:pt-0">
+            <div key={ex.id} className="py-2.5 first:pt-0 last:pb-0">
               <ExerciseRow ex={ex} />
             </div>
           ))}
         </div>
 
-        {/* Action Area */}
+        {/* Action area */}
         {error && <p className="text-xs text-destructive">{error}</p>}
 
         {isCompleted ? (
-          <div className="flex items-center gap-2.5 rounded-lg border border-green-200 bg-green-50 px-3 py-2.5 dark:border-green-900/50 dark:bg-green-900/20">
-            <CheckIcon className="size-4 shrink-0 text-green-600 dark:text-green-400" />
+          <div className="flex items-center gap-2.5 rounded-xl border border-green-200 bg-green-50 px-4 py-3 dark:border-green-900/50 dark:bg-green-900/20">
+            <CheckIcon className="size-5 shrink-0 text-green-600 dark:text-green-400" />
             <div>
-              <p className="text-sm font-medium text-green-700 dark:text-green-300">
+              <p className="text-sm font-semibold text-green-700 dark:text-green-300">
                 אימון הושלם!
               </p>
               <p className="text-xs text-green-600/80 dark:text-green-400/80">
@@ -122,10 +139,10 @@ export default function WorkoutDayCard({
           <Button
             onClick={handleComplete}
             disabled={isLogging}
-            className="w-full"
-            size="sm"
+            className="w-full h-11 text-base font-semibold"
+            size="lg"
           >
-            {isLogging ? "שומר..." : "סיימתי אימון"}
+            {isLogging ? "שומר..." : "✓  סיימתי אימון"}
           </Button>
         )}
       </CardContent>

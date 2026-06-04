@@ -83,18 +83,28 @@ function InfoRow({ label, value, dir }: { label: string; value: string | null; d
 
 function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
-    <Card>
+    <Card className="shadow-sm bg-white dark:bg-card overflow-hidden">
+      <div className="h-0.5 w-full bg-blue-400" />
       <CardContent className="py-3 text-center">
-        <p className="text-2xl font-bold">{value}</p>
-        {sub && <p className="text-xs text-primary">{sub}</p>}
+        <p className="text-2xl font-extrabold">{value}</p>
+        {sub && <p className="text-xs font-medium text-blue-600 dark:text-blue-400">{sub}</p>}
         <p className="mt-0.5 text-xs text-muted-foreground">{label}</p>
       </CardContent>
     </Card>
   )
 }
 
+function SectionHeader({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-2 pb-0.5">
+      <div className="h-4 w-1 rounded-full bg-blue-500" />
+      <h2 className="text-sm font-bold tracking-wide">{children}</h2>
+    </div>
+  )
+}
+
 function SectionTitle({ children }: { children: React.ReactNode }) {
-  return <h2 className="text-base font-semibold">{children}</h2>
+  return <SectionHeader>{children}</SectionHeader>
 }
 
 // ─── Page ──────────────────────────────────────────────────────────────────────
@@ -197,21 +207,21 @@ export default async function ClientDashboardPage({
   const fitnessLabel = FITNESS_LABELS[c.fitness_level] ?? c.fitness_level
 
   return (
-    <div className="min-h-svh bg-background">
+    <div className="min-h-svh bg-slate-50 dark:bg-background">
       <div className="mx-auto max-w-2xl space-y-6 p-4 pb-12">
 
         {/* Back + header */}
         <div className="space-y-3 pt-2">
           <Link
             href="/trainer/clients"
-            className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "-me-2 -ms-2")}
+            className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "-me-2 -ms-2 text-blue-600 hover:text-blue-700")}
           >
-            חזרה לרשימת לקוחות
+            ← חזרה לרשימת לקוחות
           </Link>
 
           <div className="flex items-start justify-between gap-3">
             <div className="space-y-1">
-              <h1 className="text-2xl font-bold tracking-tight">{c.full_name}</h1>
+              <h1 className="text-2xl font-extrabold tracking-tight">{c.full_name}</h1>
               {c.phone && (
                 <p className="text-sm text-muted-foreground" dir="ltr">{c.phone}</p>
               )}

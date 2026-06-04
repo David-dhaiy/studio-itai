@@ -79,11 +79,14 @@ export default function RegisterForm() {
   }
 
   return (
-    <div className="flex min-h-svh items-center justify-center bg-background p-4">
+    <div className="flex min-h-svh items-center justify-center bg-gradient-to-b from-blue-50/60 to-background p-4">
       <div className="w-full max-w-sm space-y-5">
-        <div className="space-y-1 text-center">
+        <div className="space-y-2 text-center">
+          <p className="text-4xl">👨‍🏫</p>
           <h1 className="text-2xl font-bold tracking-tight">הרשמת מאמן</h1>
-          <p className="text-sm text-muted-foreground">סטודיו איתי — פאנל מאמנים</p>
+          <p className="text-sm text-muted-foreground">
+            צרו חשבון מאמן וקבלו גישה מלאה לניהול לקוחות ותוכניות אימון.
+          </p>
         </div>
 
         <Card>

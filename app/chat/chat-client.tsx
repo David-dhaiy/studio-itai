@@ -30,10 +30,10 @@ function MessageBubble({ msg }: { msg: ChatMessage }) {
     <div className={cn("flex", isUser ? "justify-start" : "justify-end")}>
       <div
         className={cn(
-          "max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed whitespace-pre-wrap",
+          "max-w-[82%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap shadow-sm",
           isUser
-            ? "rounded-ts-sm bg-primary text-primary-foreground"
-            : "rounded-te-sm bg-muted text-foreground"
+            ? "rounded-ts-none bg-emerald-600 text-white"
+            : "rounded-te-none bg-white border text-foreground dark:bg-muted dark:border-muted"
         )}
       >
         {msg.content}
@@ -122,14 +122,17 @@ export default function ChatClient({
   }
 
   return (
-    <div className="flex h-svh flex-col bg-background">
+    <div className="flex h-svh flex-col bg-slate-50 dark:bg-background">
       {/* Header */}
-      <div className="flex items-center justify-between border-b px-4 py-3">
-        <div className="min-w-0">
-          <h1 className="text-base font-semibold">מאמן AI אישי</h1>
-          <p className="text-xs text-muted-foreground">
-            שאלו על טכניקה, עומס, תרגילים או התאמות לתוכנית
-          </p>
+      <div className="flex items-center justify-between border-b bg-white dark:bg-card px-4 py-3 shadow-sm">
+        <div className="min-w-0 flex items-center gap-2.5">
+          <span className="text-xl">🤖</span>
+          <div>
+            <h1 className="text-sm font-bold">מאמן AI אישי</h1>
+            <p className="text-xs text-muted-foreground">
+              טכניקה, עומס, תרגילים או התאמות
+            </p>
+          </div>
         </div>
         <ClientLogoutButton />
       </div>
@@ -138,28 +141,31 @@ export default function ChatClient({
       <div className="flex-1 overflow-y-auto px-4 py-4">
         <div className="mx-auto max-w-lg space-y-3">
           {messages.length === 0 && (
-            <div className="py-6">
-              <div className="text-center">
-                <p className="text-sm font-medium">שלום, {clientName}!</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  אפשר לשאול על תרגילים, טכניקה, עומס או התאמות לתוכנית שלך.
+            <div className="py-8">
+              <div className="text-center space-y-2">
+                <p className="text-2xl">🤖</p>
+                <p className="font-semibold">שלום, {clientName}!</p>
+                <p className="text-sm text-muted-foreground">
+                  שאלו על תרגילים, טכניקה, עומס או התאמות לתוכנית שלכם.
                 </p>
               </div>
-              <div className="mt-4 space-y-2">
-                <p className="text-xs font-medium text-muted-foreground">
-                  שאלות לדוגמה:
+              <div className="mt-5 space-y-2.5">
+                <p className="text-xs font-semibold text-muted-foreground text-center tracking-wide">
+                  שאלות נפוצות
                 </p>
-                {EXAMPLE_QUESTIONS.map((q) => (
-                  <button
-                    key={q}
-                    type="button"
-                    onClick={() => sendMessage(q)}
-                    disabled={isLoading}
-                    className="block w-full rounded-lg border bg-card px-3 py-2.5 text-start text-sm transition-colors hover:border-primary/40 hover:bg-muted/50 disabled:opacity-50"
-                  >
-                    {q}
-                  </button>
-                ))}
+                <div className="flex flex-wrap justify-center gap-2">
+                  {EXAMPLE_QUESTIONS.map((q) => (
+                    <button
+                      key={q}
+                      type="button"
+                      onClick={() => sendMessage(q)}
+                      disabled={isLoading}
+                      className="rounded-full border bg-card px-3 py-1.5 text-sm transition-colors hover:border-primary/50 hover:bg-muted/60 disabled:opacity-50"
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -189,12 +195,12 @@ export default function ChatClient({
       )}
 
       {/* Safety notice */}
-      <div className="border-t bg-muted/40 px-4 py-1.5 text-center text-xs text-muted-foreground">
-        AI מאמן ייעוץ בלבד — לא תחליף לרופא. בכאב חד, עצור ופנה לאיש מקצוע.
+      <div className="border-t bg-amber-50/80 px-4 py-1.5 text-center text-xs text-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
+        ייעוץ בלבד — לא תחליף לרופא. בכאב חד, עצור ופנה לאיש מקצוע.
       </div>
 
       {/* Input */}
-      <div className="border-t bg-background px-4 py-3">
+      <div className="border-t bg-white dark:bg-card px-4 py-3 shadow-[0_-1px_3px_rgba(0,0,0,0.05)]">
         <div className="mx-auto flex max-w-lg gap-2">
           <Input
             value={input}
@@ -209,6 +215,7 @@ export default function ChatClient({
             onClick={() => sendMessage()}
             disabled={isLoading || !input.trim()}
             size="default"
+            className="bg-emerald-600 hover:bg-emerald-700"
           >
             שלח
           </Button>

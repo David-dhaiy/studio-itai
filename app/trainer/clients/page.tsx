@@ -63,11 +63,25 @@ function daysAgo(dateStr: string | null) {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function StatCard({ label, value }: { label: string; value: number }) {
+function StatCard({
+  label,
+  value,
+  color = "default",
+}: {
+  label: string
+  value: number
+  color?: "default" | "green" | "red"
+}) {
   return (
-    <Card>
+    <Card className="shadow-sm overflow-hidden">
+      <div
+        className={cn(
+          "h-0.5 w-full",
+          color === "green" ? "bg-emerald-400" : color === "red" ? "bg-red-400" : "bg-blue-400"
+        )}
+      />
       <CardContent className="py-3 text-center">
-        <p className="text-2xl font-bold">{value}</p>
+        <p className="text-2xl font-extrabold">{value}</p>
         <p className="text-xs text-muted-foreground">{label}</p>
       </CardContent>
     </Card>
@@ -184,26 +198,28 @@ export default async function TrainerClientsPage() {
   ).length
 
   return (
-    <div className="min-h-svh bg-background">
+    <div className="min-h-svh bg-slate-50 dark:bg-background">
       <div className="mx-auto max-w-2xl space-y-6 p-4 pb-12">
 
         {/* Header */}
         <div className="flex items-start justify-between gap-4 pt-2">
           <div className="space-y-0.5">
-            <h1 className="text-2xl font-bold tracking-tight">לקוחות סטודיו איתי</h1>
+            <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide">
+              פאנל מאמן — {trainer.full_name}
+            </p>
+            <h1 className="text-2xl font-extrabold tracking-tight">הלקוחות שלי</h1>
             <p className="text-sm text-muted-foreground">
               מעקב אחרי לקוחות, תוכניות והתקדמות
             </p>
-            <p className="text-sm text-muted-foreground">מאמן: {trainer.full_name}</p>
           </div>
           <LogoutButton />
         </div>
 
         {/* Summary stats */}
         <div className="grid grid-cols-3 gap-3">
-          <StatCard label="סה״כ לקוחות" value={clientList.length} />
-          <StatCard label="פעילים החודש" value={activeThisMonth} />
-          <StatCard label="דורשים מעקב" value={needsAttention} />
+          <StatCard label="סה״כ לקוחות" value={clientList.length} color="default" />
+          <StatCard label="פעילים החודש" value={activeThisMonth} color="green" />
+          <StatCard label="דורשים מעקב" value={needsAttention} color="red" />
         </div>
 
         {/* Join link */}
@@ -234,12 +250,12 @@ export default async function TrainerClientsPage() {
                 FITNESS_LABELS[client.fitness_level] ?? client.fitness_level
 
               return (
-                <Card key={client.id}>
+                <Card key={client.id} className="overflow-hidden shadow-sm bg-white dark:bg-card">
                   <CardContent className="space-y-3 py-4">
                     {/* Name + status */}
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <p className="font-semibold">{client.full_name}</p>
+                        <p className="font-bold text-base">{client.full_name}</p>
                         {client.phone && (
                           <p className="text-sm text-muted-foreground" dir="ltr">
                             {client.phone}
@@ -253,7 +269,7 @@ export default async function TrainerClientsPage() {
                       </div>
                       <span
                         className={cn(
-                          "shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium",
+                          "shrink-0 rounded-full px-3 py-1 text-xs font-semibold",
                           status.className
                         )}
                       >
@@ -276,16 +292,16 @@ export default async function TrainerClientsPage() {
                     </div>
 
                     {/* Activity stats */}
-                    <div className="grid grid-cols-3 divide-x divide-x-reverse rounded-lg bg-muted/50 text-center text-xs">
-                      <div className="px-1 py-2">
-                        <p className="text-base font-bold">{monthCount}</p>
+                    <div className="grid grid-cols-3 divide-x divide-x-reverse rounded-xl bg-slate-50 dark:bg-muted/40 text-center text-xs border">
+                      <div className="px-1 py-2.5">
+                        <p className="text-lg font-extrabold text-primary">{monthCount}</p>
                         <p className="text-muted-foreground">אימונים החודש</p>
                       </div>
-                      <div className="px-1 py-2">
+                      <div className="px-1 py-2.5">
                         <p className="font-semibold">{daysAgo(lastWorkout)}</p>
                         <p className="text-muted-foreground">אימון אחרון</p>
                       </div>
-                      <div className="px-1 py-2">
+                      <div className="px-1 py-2.5">
                         <p className="font-semibold">{formatDate(client.created_at)}</p>
                         <p className="text-muted-foreground">הצטרף/ה</p>
                       </div>

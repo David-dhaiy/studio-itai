@@ -1,4 +1,4 @@
-import { createAdminClient } from "@/lib/supabase/server"
+import { createAuthAdminClient } from "@/lib/supabase/server"
 import { Card, CardContent } from "@/components/ui/card"
 import JoinForm from "./join-form"
 
@@ -25,10 +25,13 @@ export default async function JoinPage({
   searchParams: Promise<{ t?: string }>
 }) {
   const { t: rawTrainerId } = await searchParams
-  // Trim whitespace and normalise — URL params can carry invisible chars
+
+  console.info("[join page] raw t:", rawTrainerId ?? "MISSING")
+
+  // Trim whitespace — URL params can carry invisible chars
   const trainerId = rawTrainerId?.trim()
 
-  console.info("[join page] trainerId from URL:", trainerId ?? "MISSING")
+  console.info("[join page] trimmed trainerId:", trainerId ?? "MISSING")
 
   if (!trainerId) {
     return (
@@ -39,9 +42,13 @@ export default async function JoinPage({
     )
   }
 
-  // Validate trainer — admin client bypasses RLS for anonymous visitors
-  const admin = await createAdminClient()
-  const { data: trainer, error: trainerError } = await admin
+  // Use raw @supabase/supabase-js admin client (SUPABASE_SECRET_KEY).
+  // createAdminClient() wraps @supabase/ssr which respects RLS in some
+  // Next.js contexts — this raw client always bypasses RLS.
+  console.info("[join page] using auth admin client: true")
+  const rawAdmin = createAuthAdminClient()
+
+  const { data: trainer, error: trainerError } = await rawAdmin
     .from("trainers")
     .select("id")
     .eq("id", trainerId)
@@ -62,7 +69,7 @@ export default async function JoinPage({
     )
   }
 
-  // Pass trainer.id from DB (not raw URL param) for safety
-  console.info("[join page] rendering JoinForm with trainer.id:", trainer.id)
+  // Pass trainer.id from DB (not raw URL param)
+  console.info("[join page] rendering JoinForm with trainer.id prefix:", trainer.id.substring(0, 8))
   return <JoinForm trainerId={trainer.id} />
 }

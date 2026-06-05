@@ -37,17 +37,6 @@ export default function ForgotPasswordForm({
       { redirectTo }
     )
 
-    // Log to browser console for debugging — does NOT expose secrets
-    if (error) {
-      console.error(
-        "[forgot-password] resetPasswordForEmail failed:",
-        error.status,
-        error.message
-      )
-    } else {
-      console.info("[forgot-password] reset email sent, redirectTo:", redirectTo)
-    }
-
     // Always show generic success — do not reveal whether the email exists
     setStatus("sent")
   }
@@ -105,7 +94,7 @@ export default function ForgotPasswordForm({
               </div>
 
               {submitError && (
-                <p className="text-sm text-destructive text-center">{submitError}</p>
+                <p role="alert" className="text-sm text-destructive text-center">{submitError}</p>
               )}
 
               <Button

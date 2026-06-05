@@ -36,8 +36,16 @@ export default function RootLayout({
       className={cn("antialiased", fontMono.variable, "font-sans", heebo.variable)}
     >
       <body>
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:start-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:shadow-lg focus:ring-2 focus:ring-ring"
+        >
+          דלג לתוכן המרכזי
+        </a>
         <DirectionProvider direction="rtl">
-          <ThemeProvider>{children}</ThemeProvider>
+          <ThemeProvider>
+            <main id="main-content">{children}</main>
+          </ThemeProvider>
         </DirectionProvider>
       </body>
     </html>

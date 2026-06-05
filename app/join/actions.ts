@@ -120,15 +120,10 @@ async function createDemoPlan(
 export async function submitJoinForm(data: JoinFormPayload): Promise<JoinFormResult> {
   // Fail fast if service role key is not configured
   if (!process.env.SUPABASE_SECRET_KEY) {
-    console.error("[submitJoinForm] SUPABASE_SECRET_KEY is not set — cannot proceed")
     return { success: false, error: "שגיאת שרת. פנה/י לתמיכה." }
   }
 
   const trainerId = data.trainer_id?.trim()
-  console.info(
-    "[submitJoinForm] received trainer_id:",
-    trainerId ? trainerId.substring(0, 8) + "..." : "MISSING"
-  )
 
   if (!trainerId) {
     return { success: false, error: "חסר מזהה מאמן בטופס" }
@@ -147,13 +142,7 @@ export async function submitJoinForm(data: JoinFormPayload): Promise<JoinFormRes
     .eq("id", trainerId)
     .maybeSingle()
 
-  console.info(
-    "[submitJoinForm] trainer lookup — exists:", !!trainer,
-    "| supabase error:", trainerLookupError?.message ?? "none"
-  )
-
   if (!trainer) {
-    console.warn("[submitJoinForm] trainer not found for id prefix:", trainerId.substring(0, 8))
     return { success: false, error: "קישור הצטרפות לא תקין. פנה/י למאמן שלך לקבלת קישור חדש." }
   }
 
@@ -215,6 +204,5 @@ export async function submitJoinForm(data: JoinFormPayload): Promise<JoinFormRes
     return { success: false, error: "החשבון נוצר בהצלחה. אנא התחבר/י ידנית." }
   }
 
-  console.info("[submitJoinForm] success — client.id prefix:", client.id.substring(0, 8))
   return { success: true, client_id: client.id }
 }

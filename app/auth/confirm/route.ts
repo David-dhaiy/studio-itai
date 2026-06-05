@@ -20,16 +20,10 @@ export async function GET(request: NextRequest) {
     })
 
     if (!error) {
-      console.info("[auth/confirm] recovery OTP verified, redirecting to:", next)
       return NextResponse.redirect(`${origin}${next}`)
     }
 
-    console.error(
-      "[auth/confirm] verifyOtp failed:",
-      error.status,
-      error.message,
-      "| token prefix:", token_hash.substring(0, 8) + "..."
-    )
+    console.error("[auth/confirm] verifyOtp failed:", error.status, error.message)
   } else {
     console.warn("[auth/confirm] missing or wrong params:", {
       hasToken: !!token_hash,

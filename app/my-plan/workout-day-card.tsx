@@ -121,7 +121,7 @@ export default function WorkoutDayCard({
         </div>
 
         {/* Action area */}
-        {error && <p className="text-xs text-destructive">{error}</p>}
+        {error && <p role="alert" className="text-xs text-destructive">{error}</p>}
 
         {isCompleted ? (
           <div className="flex items-center gap-2.5 rounded-xl border border-green-200 bg-green-50 px-4 py-3 dark:border-green-900/50 dark:bg-green-900/20">

@@ -82,7 +82,7 @@ export default function RegisterForm() {
     <div className="flex min-h-svh items-center justify-center bg-gradient-to-b from-blue-50/60 to-background p-4">
       <div className="w-full max-w-sm space-y-5">
         <div className="space-y-2 text-center">
-          <p className="text-4xl">👨‍🏫</p>
+          <p className="text-4xl" aria-hidden="true">👨‍🏫</p>
           <h1 className="text-2xl font-bold tracking-tight">הרשמת מאמן</h1>
           <p className="text-sm text-muted-foreground">
             צרו חשבון מאמן וקבלו גישה מלאה לניהול לקוחות ותוכניות אימון.
@@ -106,7 +106,7 @@ export default function RegisterForm() {
                   disabled={isSubmitting}
                 />
                 {errors.full_name && (
-                  <p className="text-xs text-destructive">{errors.full_name}</p>
+                  <p role="alert" className="text-xs text-destructive">{errors.full_name}</p>
                 )}
               </div>
 
@@ -127,7 +127,7 @@ export default function RegisterForm() {
                   className="text-start"
                 />
                 {errors.email && (
-                  <p className="text-xs text-destructive">{errors.email}</p>
+                  <p role="alert" className="text-xs text-destructive">{errors.email}</p>
                 )}
               </div>
 
@@ -166,7 +166,7 @@ export default function RegisterForm() {
                   className="text-start"
                 />
                 {errors.password && (
-                  <p className="text-xs text-destructive">{errors.password}</p>
+                  <p role="alert" className="text-xs text-destructive">{errors.password}</p>
                 )}
               </div>
 
@@ -186,12 +186,12 @@ export default function RegisterForm() {
                   className="text-start"
                 />
                 {errors.confirm_password && (
-                  <p className="text-xs text-destructive">{errors.confirm_password}</p>
+                  <p role="alert" className="text-xs text-destructive">{errors.confirm_password}</p>
                 )}
               </div>
 
               {submitError && (
-                <p className="text-sm text-destructive text-center">{submitError}</p>
+                <p role="alert" className="text-sm text-destructive text-center">{submitError}</p>
               )}
 
               <Button type="submit" className="w-full" disabled={isSubmitting}>

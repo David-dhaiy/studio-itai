@@ -16,7 +16,7 @@ function TrainerDashboard({ fullName }: { fullName: string }) {
     <div className="min-h-svh bg-gradient-to-b from-blue-50/60 to-background">
       <div className="mx-auto max-w-md space-y-5 p-4 py-10 sm:py-16">
         <div className="text-center space-y-1">
-          <p className="text-4xl">👨‍🏫</p>
+          <p className="text-4xl" aria-hidden="true">👨‍🏫</p>
           <h1 className="text-2xl font-bold tracking-tight">סטודיו איתי</h1>
         </div>
         <Card className="border-blue-200 bg-white shadow-sm">
@@ -44,7 +44,7 @@ function ClientDashboard({ fullName }: { fullName: string }) {
     <div className="min-h-svh bg-gradient-to-b from-emerald-50/60 to-background">
       <div className="mx-auto max-w-md space-y-5 p-4 py-10 sm:py-16">
         <div className="text-center space-y-1">
-          <p className="text-4xl">🏋️‍♂️</p>
+          <p className="text-4xl" aria-hidden="true">🏋️‍♂️</p>
           <h1 className="text-2xl font-bold tracking-tight">סטודיו איתי</h1>
         </div>
         <Card className="border-emerald-200 bg-white shadow-sm">
@@ -91,7 +91,7 @@ function GuestHome() {
 
         {/* Hero */}
         <div className="text-center space-y-2">
-          <p className="text-5xl leading-none">🏋️‍♂️</p>
+          <p className="text-5xl leading-none" aria-hidden="true">🏋️‍♂️</p>
           <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">סטודיו איתי</h1>
           <p className="text-base font-medium text-muted-foreground">
             מערכת חכמה לניהול אימונים אישיים
@@ -106,7 +106,7 @@ function GuestHome() {
           <div className="h-1 w-full bg-emerald-500" />
           <CardContent className="space-y-3 py-5">
             <div className="flex items-center gap-2">
-              <span className="text-2xl">🏋️‍♂️</span>
+              <span className="text-2xl" aria-hidden="true">🏋️‍♂️</span>
               <h2 className="text-lg font-bold">לקוחות</h2>
             </div>
             <div className="space-y-3">
@@ -131,7 +131,7 @@ function GuestHome() {
           <div className="h-1 w-full bg-blue-500" />
           <CardContent className="space-y-3 py-5">
             <div className="flex items-center gap-2">
-              <span className="text-2xl">👨‍🏫</span>
+              <span className="text-2xl" aria-hidden="true">👨‍🏫</span>
               <h2 className="text-lg font-bold">מאמנים</h2>
             </div>
             <div className="space-y-3">

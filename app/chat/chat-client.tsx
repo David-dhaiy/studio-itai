@@ -126,7 +126,7 @@ export default function ChatClient({
       {/* Header */}
       <div className="flex items-center justify-between border-b bg-white dark:bg-card px-4 py-3 shadow-sm">
         <div className="min-w-0 flex items-center gap-2.5">
-          <span className="text-xl">🤖</span>
+          <span className="text-xl" aria-hidden="true">🤖</span>
           <div>
             <h1 className="text-sm font-bold">מאמן AI אישי</h1>
             <p className="text-xs text-muted-foreground">
@@ -138,12 +138,17 @@ export default function ChatClient({
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4">
+      <div
+        className="flex-1 overflow-y-auto px-4 py-4"
+        role="log"
+        aria-live="polite"
+        aria-label="שיחה עם מאמן AI"
+      >
         <div className="mx-auto max-w-lg space-y-3">
           {messages.length === 0 && (
             <div className="py-8">
               <div className="text-center space-y-2">
-                <p className="text-2xl">🤖</p>
+                <p className="text-2xl" aria-hidden="true">🤖</p>
                 <p className="font-semibold">שלום, {clientName}!</p>
                 <p className="text-sm text-muted-foreground">
                   שאלו על תרגילים, טכניקה, עומס או התאמות לתוכנית שלכם.
@@ -176,7 +181,7 @@ export default function ChatClient({
 
           {/* Loading indicator */}
           {isLoading && (
-            <div className="flex justify-end">
+            <div className="flex justify-end" role="status" aria-live="polite">
               <div className="rounded-2xl rounded-te-sm bg-muted px-3.5 py-2.5 text-sm text-muted-foreground">
                 <span className="animate-pulse">המאמן חושב...</span>
               </div>
@@ -189,7 +194,10 @@ export default function ChatClient({
 
       {/* Error */}
       {error && (
-        <div className="border-t bg-destructive/5 px-4 py-2 text-center text-xs text-destructive">
+        <div
+          role="alert"
+          className="border-t bg-destructive/5 px-4 py-2 text-center text-xs text-destructive"
+        >
           {error}
         </div>
       )}
@@ -207,6 +215,7 @@ export default function ChatClient({
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="שאל שאלה על האימון שלך..."
+            aria-label="שאלה לשליחה"
             disabled={isLoading}
             className="flex-1"
             autoComplete="off"

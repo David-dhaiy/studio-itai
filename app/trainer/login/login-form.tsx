@@ -41,7 +41,7 @@ export default function LoginForm() {
     <div className="flex min-h-svh items-center justify-center bg-gradient-to-b from-blue-50/60 to-background p-4">
       <div className="w-full max-w-sm space-y-5">
         <div className="space-y-2 text-center">
-          <p className="text-4xl">👨‍🏫</p>
+          <p className="text-4xl" aria-hidden="true">👨‍🏫</p>
           <h1 className="text-2xl font-bold tracking-tight">כניסת מאמן</h1>
           <p className="text-sm text-muted-foreground">
             סטודיו איתי — פאנל ניהול לקוחות ותוכניות אימון.
@@ -81,7 +81,7 @@ export default function LoginForm() {
               </div>
 
               {error && (
-                <p className="text-sm text-destructive text-center">{error}</p>
+                <p role="alert" className="text-sm text-destructive text-center">{error}</p>
               )}
 
               <Button type="submit" className="w-full" disabled={isSubmitting}>

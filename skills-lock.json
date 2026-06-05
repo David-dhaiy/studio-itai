@@ -12,6 +12,12 @@
       "sourceType": "github",
       "computedHash": "228adbce76c9036e79d1177e5b9fe05062569b8aea7effb89152f83f6d4603b2"
     },
+    "react-pdf": {
+      "source": "vercel-labs/json-render",
+      "sourceType": "github",
+      "skillPath": "skills/react-pdf/SKILL.md",
+      "computedHash": "82c58b5177f429f759ea93d6b60264a4ffee9a8ca233a1d5186c85c3b0492516"
+    },
     "shadcn": {
       "source": "shadcn/ui",
       "sourceType": "github",

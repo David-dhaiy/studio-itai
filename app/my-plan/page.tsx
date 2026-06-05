@@ -190,7 +190,21 @@ export default async function MyPlanPage({
                 <p className="text-sm text-muted-foreground">מטרה: {client.goal}</p>
               )}
             </div>
-            <ClientLogoutButton className="shrink-0" />
+            <div className="flex shrink-0 flex-col items-end gap-2">
+              <ClientLogoutButton />
+              {workout && (
+                <a
+                  href="/api/pdf/my-plan"
+                  className={cn(
+                    buttonVariants({ variant: "outline", size: "sm" }),
+                    "gap-1.5"
+                  )}
+                >
+                  <span aria-hidden>⬇</span>
+                  הורד תוכנית כ-PDF
+                </a>
+              )}
+            </div>
           </div>
         </div>
 

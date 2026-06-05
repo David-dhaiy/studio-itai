@@ -1,9 +1,16 @@
 import { Geist_Mono, Heebo } from "next/font/google"
+import type { Viewport } from "next"
 
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { DirectionProvider } from "@/components/ui/direction"
 import { cn } from "@/lib/utils";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#111827",
+}
 
 const heebo = Heebo({
   subsets: ['hebrew', 'latin'],

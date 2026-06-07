@@ -110,11 +110,23 @@ function GuestHome() {
               <h2 className="text-lg font-bold">לקוחות</h2>
             </div>
             <div className="space-y-3">
+              <div className="rounded-lg bg-emerald-50 px-3 py-2.5">
+                <p className="text-xs font-medium text-emerald-800">מתאמן/ת חדש/ה?</p>
+                <p className="mt-0.5 text-xs text-emerald-700">
+                  מלאו שאלון קצר והמערכת תשייך אתכם למאמן פנוי.
+                </p>
+              </div>
               <Link
-                href="/client/login"
+                href="/join/general"
                 className={cn(buttonVariants({ variant: "default" }), "w-full min-h-11 bg-emerald-600 hover:bg-emerald-700")}
               >
-                כניסת לקוח
+                הצטרפות מתאמן חדש
+              </Link>
+              <Link
+                href="/client/login"
+                className={cn(buttonVariants({ variant: "outline" }), "w-full min-h-11 border-emerald-200 text-emerald-700 hover:bg-emerald-50")}
+              >
+                כניסת לקוח קיים
               </Link>
               <Link
                 href="/my-plan"

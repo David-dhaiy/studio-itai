@@ -4,6 +4,7 @@ import type { Viewport } from "next"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { DirectionProvider } from "@/components/ui/direction"
+import AccessibilityWidget from "@/components/accessibility-widget"
 import { cn } from "@/lib/utils";
 
 export const viewport: Viewport = {
@@ -45,6 +46,7 @@ export default function RootLayout({
         <DirectionProvider direction="rtl">
           <ThemeProvider>
             <main id="main-content">{children}</main>
+            <AccessibilityWidget />
           </ThemeProvider>
         </DirectionProvider>
       </body>

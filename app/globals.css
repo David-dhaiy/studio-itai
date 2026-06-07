@@ -131,3 +131,41 @@
     overflow-x: hidden;
     }
 }
+
+/* ─── Accessibility overrides ──────────────────────────────────────────────── */
+
+html.a11y-text-lg  { font-size: 112%; }
+html.a11y-text-xl  { font-size: 125%; }
+html.a11y-text-xxl { font-size: 140%; }
+
+html.a11y-high-contrast {
+  --background: oklch(0 0 0);
+  --foreground: oklch(1 0 0);
+  --card: oklch(0.08 0 0);
+  --card-foreground: oklch(1 0 0);
+  --muted: oklch(0.15 0 0);
+  --muted-foreground: oklch(0.85 0 0);
+  --primary: oklch(1 0 0);
+  --primary-foreground: oklch(0 0 0);
+  --border: oklch(0.6 0 0);
+  --input: oklch(0.15 0 0);
+}
+
+html.a11y-highlight-links a:not([class*="button"]):not([role="button"]) {
+  text-decoration: underline !important;
+  text-underline-offset: 3px;
+  outline: 2px solid currentColor;
+  outline-offset: 1px;
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html.a11y-no-animations *,
+  html.a11y-no-animations *::before,
+  html.a11y-no-animations *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

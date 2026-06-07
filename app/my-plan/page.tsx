@@ -53,14 +53,8 @@ function NotLoggedIn() {
 
 // ─── Page ──────────────────────────────────────────────────────────────────────
 
-export default async function MyPlanPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ client?: string }>
-}) {
-  const { client: devClientParam } = await searchParams
-
-  // ── Primary: client session ──────────────────────────────────────────────────
+export default async function MyPlanPage() {
+  // ── Client session ───────────────────────────────────────────────────────────
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -78,12 +72,6 @@ export default async function MyPlanPage({
     } else {
       isWrongRole = true
     }
-  }
-
-  // ── Dev fallback: ?client= query param ──────────────────────────────────────
-  // TODO: Remove this fallback once all clients are migrated to auth
-  if (!clientId && devClientParam) {
-    clientId = devClientParam
   }
 
   if (!clientId && isWrongRole) {

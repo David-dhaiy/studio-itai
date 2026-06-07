@@ -1,6 +1,6 @@
 "use server"
 
-import { createAdminClient } from "@/lib/supabase/server"
+import { createClient, createAdminClient } from "@/lib/supabase/server"
 
 export interface LogWorkoutResult {
   success: boolean
@@ -11,10 +11,28 @@ export async function logWorkoutCompletion(
   client_id: string,
   workout_day_id: string
 ): Promise<LogWorkoutResult> {
-  const supabase = await createAdminClient()
+  // ── Verify the caller is the owning client ───────────────────────────────────
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  // Verify the client + workout_day both exist and are related
-  const { data: wd } = await supabase
+  if (!user) {
+    return { success: false, error: "נדרשת התחברות." }
+  }
+
+  const { data: sessionClient } = await supabase
+    .from("clients")
+    .select("id")
+    .eq("user_id", user.id)
+    .maybeSingle()
+
+  if (!sessionClient || sessionClient.id !== client_id) {
+    return { success: false, error: "אין הרשאה לפעולה זו." }
+  }
+
+  // ── Verify workout_day belongs to this client ────────────────────────────────
+  const admin = await createAdminClient()
+
+  const { data: wd } = await admin
     .from("workout_days")
     .select("id, workout_id, workouts!inner(client_id)")
     .eq("id", workout_day_id)
@@ -24,14 +42,13 @@ export async function logWorkoutCompletion(
     return { success: false, error: "יום האימון לא נמצא." }
   }
 
-  // TypeScript: wd.workouts is typed as any by the untyped client
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const workoutClientId = (wd as any).workouts?.client_id
   if (workoutClientId !== client_id) {
     return { success: false, error: "אין הרשאה לפעולה זו." }
   }
 
-  const { error } = await supabase.from("workout_logs").insert({
+  const { error } = await admin.from("workout_logs").insert({
     client_id,
     workout_day_id,
     completed_at: new Date().toISOString(),
